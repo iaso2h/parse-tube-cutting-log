@@ -3,12 +3,18 @@ import chardet
 import os
 import re
 import datetime
+import time
+from collections import Counter
 from pathlib import Path
 from striprtf.striprtf import rtf_to_text
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 
-wb = Workbook()
+speedTrackFilePath = Path("D:\欧拓图纸\存档\耗时计算\统计表格.xlsx")
+if speedTrackFilePath.exists():
+    wb = load_workbook(str(speedTrackFilePath))
+else:
+    wb = Workbook()
 programPath = Path(__file__).resolve()
 # programDir = programPath.parent
 programDir = Path(os.getcwd())
@@ -25,10 +31,16 @@ def getTimeStamp():
 
 
 def getProperSheetName(name: str) -> str:
-    if len(name) > 31:
-        return name[:31]
+    conciseFileNameMatch = re.search(r"^.*?(?=A3)|^.*?(?=6063(-T\d)?)|^.*?(?=6061(-T\d)?)", name, re.I)
+    if conciseFileNameMatch:
+        conciseFileName = conciseFileNameMatch.group().strip()
     else:
-        return name
+        conciseFileName = name
+
+    if len(conciseFileName) > 31:
+        return conciseFileName[:31]
+    else:
+        return conciseFileName
 
 
 laserCutKeywords = {}
@@ -41,6 +53,10 @@ def getEncoding(filePath):
         rawData = f.read()
         result = chardet.detect(rawData)
         return result["encoding"]
+
+
+def convertLogTimeStamp(timeStampStr):
+    return datetime.datetime.strptime(timeStampStr, "%m/%d %H:%M:%S")
 
 
 def parseStart():
@@ -60,15 +76,12 @@ def parseStart():
         return
 
 
-    # Record how many laser files have been skipped if they haven't completed two loops
-    skipCount = 0
     # Loop through each laser cut file section starting with keywords about opening a file
     for i, openIndex in enumerate(openIndexes):
         # MATCH:  0 : (09/10 09:06:45)打开文件：D:\欧拓图纸\切割文件\608GC样品\608GC 车架前管 A3_Φ22_T1.0_L230_X1.zx
         laserFileNameMatch = re.match(r"^\(\d+.\d+\ \d+:\d+:\d+\)打开文件：(.*)", lines[openIndex])
         # Skip current openIdex if the heading doesn't match the regex pattern
         if not laserFileNameMatch:
-            skipCount = skipCount + 1
             print(f"[{getTimeStamp()}]:[bright_black]No laser file opened keywords found. Skip")
             continue
 
@@ -111,7 +124,6 @@ def parseStart():
 
         # Go for next laser cut file session if current session doesn't complete two loops
         if not laserCutKeywords[str(laserFilePath)] or len(laserCutKeywords[str(laserFilePath)]) == 1:
-            skipCount = skipCount + 1
             print(f"[{getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
             continue
 
@@ -167,41 +179,33 @@ def parseStart():
 
 
         # Generate excel file for analysis
-        rowNum = i + 1 - skipCount
-        global excelCreatedChk
-        if not excelCreatedChk:
-            excelCreatedChk = True
-            ws = wb.active
-            ws.title = "总表(复制用)"
-        else:
-            ws = wb["总表(复制用)"]
-
 
         # Write info in gross sheet
-
         # Skip in current loop if current laser file info has been recorded
         grossWritenChk = False
-        for row in partWorksheet.iter_rows(min_row=1, max_col=1, max_row=len(openIndexes)+1:
+        partWorksheet = wb["总表"]
+        for row in grossWorksheet.iter_rows(min_row=1, max_col=1, max_row=grossWorksheet.max_row):
             for cell in row:
                 if not cell.value:
                     break
                 if cell.value == laserFilePath.name:
                     grossWritenChk = True
+                    grossRowNum = cell.row
                     break
 
-        if grossWritenChk:
-            continue
-
-        if laserCutKeywordsPreviousCount <= 1:
-            ws[f"A{rowNum}"] = laserFilePath.name
-            ws[f"C{rowNum}"] = partLoopYield
-            ws[f"E{rowNum}"] = f"=D{rowNum}/B{rowNum}"
-            ws[f"F{rowNum}"] = 100
-            ws[f"G{rowNum}"] = f"=F{rowNum}*E{rowNum}"
+        if not grossWritenChk:
+            grossRowNum = grossWorksheet.max_row + 1
+            grossWorksheet[f"A{grossRowNum}"] = laserFilePath.name
+            grossWorksheet[f"C{grossRowNum}"] = partLoopYield
+            grossWorksheet[f"E{grossRowNum}"] = f"=D{grossRowNum}/B{grossRowNum}"
+            grossWorksheet[f"E{grossRowNum}"].number_format = "h:mm:ss"
+            grossWorksheet[f"F{grossRowNum}"] = 100
+            grossWorksheet[f"G{grossRowNum}"] = f"=F{grossRowNum}*E{grossRowNum}"
         else:
-            pass #skip when gross info has been written before
+            pass # The gross info has been written before
 
-        ws[f"H{rowNum}"] = getTimeStamp()
+        grossWorksheet[f"H{grossRowNum}"] = getTimeStamp()
+        grossWorksheet[f"E{grossRowNum}"].number_format = "yyyy/m/d h:mm:ss"
 
         # Write specific cut time in new sheet
         partWorksheetName = getProperSheetName(laserFilePath.stem)
@@ -209,19 +213,23 @@ def parseStart():
             try:
                 # Even though sheet name may be duplicated after truncating
                 partWorksheet = wb[partWorksheetName]
-                startRow = laserCutKeywordsPreviousCount + 1
+                startRow = partWorksheet.max_row + 1
             except Exception:
                 partWorksheet = wb.create_sheet(partWorksheetName, 1)
                 startRow = 1 #NOTE: 1 based
         else:
             partWorksheet = wb[partWorksheetName]
-            startRow = laserCutKeywordsPreviousCount + 1
+            startRow = partWorksheet.max_row + 1
 
-        for row in partWorksheet.iter_rows(min_row=startRow, max_col=4, max_row=len(laserCutKeywords[str(laserFilePath)])):
+        timeDifferences = []
+        for row in partWorksheet.iter_rows(min_row=startRow, max_col=3, max_row=len(laserCutKeywords[str(laserFilePath)])):
             for cell in row:
                 if cell.row == 1:
-                    if cell.column_letter == "D":
-
+                    if cell.column_letter == "A":
+                        cell.value = "时间节点"
+                    if cell.column_letter == "B":
+                        cell.value = "零件信息"
+                    if cell.column_letter == "C":
                         cell.value = "时间差"
                 else:
                     loopIdx = cell.row - 1
@@ -233,19 +241,42 @@ def parseStart():
                         partLoopYield     = partLoopMatch.groups()[2]
 
                     if cell.column_letter == "A":
-                        cell.value = partLoopDateStamp
+                        cell.value = f"{partLoopDateStamp} {partLoopTimeStamp}"
+                        cell.number_format = "yyyy/m/d h:mm:ss"
                     elif cell.column_letter == "B":
-                        cell.value = partLoopTimeStamp
-                    elif cell.column_letter == "C":
                         cell.value = partLoopYield
-                    elif cell.column_letter == "D":
+                    elif cell.column_letter == "C":
                         if cell.row != 2:
-                            cell.value = f"=B{cell.row}-B{cell.row-1}"
+                            timeDifferenceFormula = f"=A{cell.row}-A{cell.row-1}"
+                            timeDifferenceDatetimeObj = convertLogTimeStamp(partWorksheet[f"A{cell.row}"].value) - convertLogTimeStamp(partWorksheet[f"A{cell.row-1}"].value)
+                            timeDifferenceLiteral = time.strftime("%H:%M:%S", time.gmtime(timeDifferenceDatetimeObj.total_seconds()))
+                            timeDifferences.append(timeDifferenceLiteral)
+                            cell.value = timeDifferenceFormula
                             cell.number_format = "h:mm:ss"
 
 
+        # Write the time cost of a long tube back in gross sheet
+        counter = Counter(timeDifferences)
+        timeDifferenceMostCommonLiteral = counter.most_common()[0][0]
+        timeDifferenceMostCommon = datetime.datetime.strptime(f"{timeDifferenceMostCommonLiteral}", "%H:%M:%S")
+        for i in range(1, 6):
+            timeDifferenceDelta = datetime.timedelta(seconds=i)
+            timeDifferenceNew = timeDifferenceMostCommon + timeDifferenceDelta
+            timeDifferenceNewLiteral = timeDifferenceNew.strftime("%H:%M:%S")
+
+            if timeDifferenceNewLiteral not in timeDifferences:
+                grossWorksheet[f"D{grossRowNum}"] = timeDifferenceNewLiteral
+                grossWorksheet[f"D{grossRowNum}"].number_format = "h:mm:ss"
+                break
+
+
+
+
 def saveWorkbook():
-    if excelCreatedChk:
+    try:
+        wb.save(str(speedTrackFilePath))
+    except Exception as e:
+        print(e)
         excelFilePath = Path(
             exportDir,
             str(
@@ -253,8 +284,7 @@ def saveWorkbook():
                 ) + ".xlsx"
         )
         print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
-        # create a gross sheet
         wb.save(str(excelFilePath))
 
-        print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]")
+    print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]")
 
