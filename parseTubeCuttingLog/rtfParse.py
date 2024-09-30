@@ -1,3 +1,5 @@
+import util
+
 import console
 import chardet
 import os
@@ -42,10 +44,6 @@ def getPartLogList(partLogParentDir: Path) -> list:
 
     return rtfAll, txtAll
 
-
-def getTimeStamp() -> str:
-    now = datetime.datetime.now()
-    return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
 
 def getProperSheetName(name: str) -> str:
@@ -94,7 +92,7 @@ def writeTxt(laserFilePath, txtAll): # {{{
 
         if txtFileExistingLiteralSuffix in laserFilePath.stem or laserFilePath.stem in txtFileExistingPathLiteral:
             txtFilePath = txtfileExistingPath
-            print(f"[{getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
+            print(f"[{util.getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
             txtWriteMode = "a"
             txtEncoding = getEncoding(txtFilePath)
 
@@ -112,7 +110,7 @@ def writeTxt(laserFilePath, txtAll): # {{{
 
     if not txtFilePath:
         txtFilePath = Path(localExportDir, laserFilePath.stem + ".txt")
-        print(f"[{getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
+        print(f"[{util.getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
         txtWriteMode = "w"
         txtEncoding = "utf-8"
 
@@ -134,7 +132,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
 
         if rtfFileExistingLiteralSuffix in laserFilePath.stem or laserFilePath.stem in rtfFileExistingPathLiteral:
             rtfFilePath = rtfFileExistingPath
-            print(f"[{getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
+            print(f"[{util.getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
             rtfWriteMode = "a"
             rtfEncoding = getEncoding(rtfFilePath)
 
@@ -151,7 +149,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
 
     if not rtfFilePath:
         rtfFilePath = Path(localExportDir, laserFilePath.stem + ".rtf")
-        print(f"[{getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
+        print(f"[{util.getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
         rtfWriteMode = "w"
         rtfEncoding = "utf-8"
 
@@ -193,7 +191,7 @@ def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {
     else:
         pass # The gross info has been written before
 
-    grossWorksheet[f"H{grossRowNum}"] = getTimeStamp()
+    grossWorksheet[f"H{grossRowNum}"] = util.getTimeStamp()
     grossWorksheet[f"H{grossRowNum}"].number_format = "yyyy/m/d h:mm:ss"
 
     # Write specific cut time in new sheet
@@ -266,7 +264,7 @@ def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {
 
 def parseStart(): # {{{
     # https://rich.readthedocs.io/en/stable/appendix/colors.html
-    print(f"[{getTimeStamp()}]:[yellow]Parsing rtf file:[/yellow] [bright_black]{rtfTarget}")
+    print(f"[{util.getTimeStamp()}]:[yellow]Parsing rtf file:[/yellow] [bright_black]{rtfTarget}")
     openIndexes = []
     # loop through file convert rtf content to plain text and find keywords of opening files
     with open(rtfTarget, "r", encoding=getEncoding(rtfTarget)) as f:
@@ -287,7 +285,7 @@ def parseStart(): # {{{
         laserFileNameMatch = re.match(r"^\(\d+.\d+\ \d+:\d+:\d+\)打开文件：(.*)", lines[openIndex])
         # Skip current openIdex if the heading doesn't match the regex pattern
         if not laserFileNameMatch:
-            print(f"[{getTimeStamp()}]:[bright_black]No laser file opened keywords found. Skip")
+            print(f"[{util.getTimeStamp()}]:[bright_black]No laser file opened keywords found. Skip")
             continue
 
         laserFilePath = Path(laserFileNameMatch.groups()[0])
@@ -302,7 +300,7 @@ def parseStart(): # {{{
             laserCutKeywordsPreviousCount = len(laserCutKeywords[str(laserFilePath)])
 
 
-        print(f"\n[{getTimeStamp()}]:[white]Parsing log for laser file:[/white] [bright_black]{laserFilePath}")
+        print(f"\n[{util.getTimeStamp()}]:[white]Parsing log for laser file:[/white] [bright_black]{laserFilePath}")
 
         # Exact exact log section for each laser file
         if i + 1 == len(openIndexes):
@@ -329,7 +327,7 @@ def parseStart(): # {{{
 
         # Go for next laser cut file session if current session doesn't complete two loops
         if not laserCutKeywords[str(laserFilePath)] or len(laserCutKeywords[str(laserFilePath)]) == 1:
-            print(f"[{getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
+            print(f"[{util.getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
             continue
 
         os.makedirs(localExportDir, exist_ok=True)
@@ -345,7 +343,7 @@ def parseStart(): # {{{
 def saveWorkbook(): # {{{
     try:
         wb.save(str(speedTrackFilePath))
-        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{speedTrackFilePath}")
+        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{speedTrackFilePath}")
     except Exception as e:
         print(e)
         excelFilePath = Path(
@@ -355,6 +353,6 @@ def saveWorkbook(): # {{{
                 ) + ".xlsx"
         )
         wb.save(str(excelFilePath))
-        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
+        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
 
-    print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
+    print(f"[{util.getTimeStamp()}]:[bold white]Done[/bold white]") # }}}

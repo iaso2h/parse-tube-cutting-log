@@ -27,7 +27,7 @@ def rtfFind():
             rtfParse.rtfCandidates.append(f)
 
 
-def cliStart():
+def speedTrack():
     # Select rtf files to parse
     if len(sys.argv) > 1 and sys.argv[1][-4:] == ".rtf":
             rtfParse.rtfTarget = sys.argv[1]
@@ -56,3 +56,26 @@ def cliStart():
     rtfParse.parseStart()
     rtfParse.saveWorkbook()
     # spinnerParsing.stop()
+
+
+def cutRecord():
+    import cutRecord
+    cutRecord.addScreendshots()
+
+
+def cliStart():
+    functions = ["日志分析", "开料记录"]
+    try:
+        ans = beaupy.select(functions, return_index=False)
+    except KeyboardInterrupt:
+        keyboardInterruptExit()
+    except beaupy.Abort:
+        abortExit()
+    except Exception as e:
+        print(e)
+        SystemExit(1)
+
+    if ans == "开料记录":
+        cutRecord()
+    elif ans == "日志分析":
+        speedTrack()
