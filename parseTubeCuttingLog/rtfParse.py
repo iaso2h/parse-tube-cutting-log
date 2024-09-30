@@ -11,6 +11,7 @@ from openpyxl import Workbook, load_workbook
 
 
 speedTrackFilePath = Path("D:\欧拓图纸\存档\耗时计算\统计表格.xlsx")
+partLogParentDir = Path(r"D:\欧拓图纸\存档\耗时计算")
 if speedTrackFilePath.exists():
     wb = load_workbook(str(speedTrackFilePath))
 else:
@@ -18,14 +19,31 @@ else:
 programPath = Path(__file__).resolve()
 # programDir = programPath.parent
 programDir = Path(os.getcwd())
-exportDir  = Path(programDir, "export")
+localExportDir  = Path(programDir, "export")
 excelCreatedChk = False
 print = console.print
 rtfCandidates = []
 rtfTarget = ""
 
 
-def getTimeStamp():
+def getPartLogList(partLogParentDir: Path) -> list:
+    rtfAll = []
+    txtAll = []
+    for srcPath in partLogParentDir.iterdir():
+        if srcPath.is_dir() and re.search(r"^\d", srcPath.name):
+            rtfSub, txtSub = getPartLogList(srcPath)
+            rtfAll.extend(rtfSub)
+            txtAll.extend(txtSub)
+        else:
+            if srcPath.suffix == ".txt":
+                txtAll.append(srcPath)
+            elif srcPath.suffix == ".rtf":
+                rtfAll.append(srcPath)
+
+    return rtfAll, txtAll
+
+
+def getTimeStamp() -> str:
     now = datetime.datetime.now()
     return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
@@ -46,7 +64,7 @@ def getProperSheetName(name: str) -> str:
 laserCutKeywords = {}
 
 
-def getEncoding(filePath):
+def getEncoding(filePath) -> str:
     # Create a magic object
     with open(filePath, "rb") as f:
         # Detect the encoding
@@ -55,11 +73,198 @@ def getEncoding(filePath):
         return result["encoding"]
 
 
-def convertLogTimeStamp(timeStampStr):
-    return datetime.datetime.strptime(timeStampStr, "%m/%d %H:%M:%S")
+def convertLogTimeStamp(datetimeStampStr):
+    try:
+        datetimeObj = datetime.datetime.strptime(datetimeStampStr, "%m/%d %H:%M:%S")
+        return datetimeObj
+    except Exception:
+        return None
 
 
-def parseStart():
+def writeTxt(laserFilePath, txtAll): # {{{
+    # Write laser cut record about the first part being cut in a .txt file
+    txtFilePath = None
+    for txtfileExistingPath in txtAll:
+        txtFileExistingPathLiteral = str(txtfileExistingPath.name)
+        txtFileExistingSuffixMatch = re.search(r".*(?=L\d{4}.*$)", txtFileExistingPathLiteral)
+        if txtFileExistingSuffixMatch:
+            txtFileExistingLiteralSuffix = txtFileExistingSuffixMatch.group().strip()
+        else:
+            txtFileExistingLiteralSuffix = txtFileExistingPathLiteral
+
+        if txtFileExistingLiteralSuffix in laserFilePath.stem or laserFilePath.stem in txtFileExistingPathLiteral:
+            txtFilePath = txtfileExistingPath
+            print(f"[{getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
+            txtWriteMode = "a"
+            txtEncoding = getEncoding(txtFilePath)
+
+            # Convert file to UTF-8
+            if txtEncoding != "utf-8":
+                with open(txtFilePath, "rb") as f:
+                    decodedContent = f.read().decode(txtEncoding)
+                with open(txtFilePath, "w", encoding="utf-8") as f:
+                    f.write(decodedContent)
+
+            with open(txtFilePath, txtWriteMode, encoding="utf-8") as f:
+                for l in laserCutKeywords[str(laserFilePath)]:
+                    f.write(f"{l}\n")
+            break
+
+    if not txtFilePath:
+        txtFilePath = Path(localExportDir, laserFilePath.stem + ".txt")
+        print(f"[{getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
+        txtWriteMode = "w"
+        txtEncoding = "utf-8"
+
+        with open(txtFilePath, txtWriteMode, encoding=txtEncoding) as f:
+            for l in laserCutKeywords[str(laserFilePath)]:
+                f.write(f"{l}\n") # }}}
+
+
+def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
+    # Split rtf file based on laserfile name
+    rtfFilePath = None
+    for rtfFileExistingPath in rtfAll:
+        rtfFileExistingPathLiteral = str(rtfFileExistingPath.name)
+        rtfFileExistingSuffixMatch = re.search(r".*(?=L\d{4}.*$)", rtfFileExistingPathLiteral)
+        if rtfFileExistingSuffixMatch:
+            rtfFileExistingLiteralSuffix = rtfFileExistingSuffixMatch.group().strip()
+        else:
+            rtfFileExistingLiteralSuffix = rtfFileExistingPathLiteral
+
+        if rtfFileExistingLiteralSuffix in laserFilePath.stem or laserFilePath.stem in rtfFileExistingPathLiteral:
+            rtfFilePath = rtfFileExistingPath
+            print(f"[{getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
+            rtfWriteMode = "a"
+            rtfEncoding = getEncoding(rtfFilePath)
+
+            # Convert file to UTF-8
+            if rtfEncoding != "utf-8":
+                with open(rtfFilePath, "rb") as f:
+                    decodedContent = f.read().decode(rtfEncoding)
+                with open(rtfFilePath, "w", encoding="utf-8") as f:
+                    f.write(decodedContent)
+
+            with open(rtfFilePath, rtfWriteMode, encoding="utf-8") as f:
+                f.write(lineSplitedConcatenated)
+            break
+
+    if not rtfFilePath:
+        rtfFilePath = Path(localExportDir, laserFilePath.stem + ".rtf")
+        print(f"[{getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
+        rtfWriteMode = "w"
+        rtfEncoding = "utf-8"
+
+        with open(rtfFilePath, rtfWriteMode, encoding=rtfEncoding) as f:
+            f.write(lineSplitedConcatenated) # }}}
+
+
+def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {{{
+    # Generate excel file for analysis
+
+    # Write info in gross sheet
+    # Skip in current loop if current laser file info has been recorded
+    grossWritenChk = False
+    grossWorksheet = wb["总表"]
+    for row in grossWorksheet.iter_rows(min_row=1, max_col=1, max_row=grossWorksheet.max_row):
+        for cell in row:
+            if not cell.value:
+                break
+            if cell.value == laserFilePath.name:
+                grossWritenChk = True
+                grossRowNum = cell.row
+                break
+
+    if not grossWritenChk:
+        grossRowNum = grossWorksheet.max_row + 1
+        # https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/styles/numbers.html
+        grossWorksheet[f"A{grossRowNum}"] = laserFilePath.name
+        longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", laserFilePath.name)
+        if longTubeLengthMatch:
+            grossWorksheet[f"B{grossRowNum}"] = int(longTubeLengthMatch.group())
+        grossWorksheet[f"C{grossRowNum}"] = int(partLoopYield)
+        grossWorksheet[f"C{grossRowNum}"].number_format = "0"
+        grossWorksheet[f"E{grossRowNum}"] = f"=D{grossRowNum}/B{grossRowNum}"
+        grossWorksheet[f"E{grossRowNum}"].number_format = "h:mm:ss"
+        grossWorksheet[f"F{grossRowNum}"] = 100
+        grossWorksheet[f"F{grossRowNum}"].number_format = "0"
+        grossWorksheet[f"G{grossRowNum}"] = f"=F{grossRowNum}*E{grossRowNum}"
+        grossWorksheet[f"G{grossRowNum}"].number_format = "h:mm:ss"
+    else:
+        pass # The gross info has been written before
+
+    grossWorksheet[f"H{grossRowNum}"] = getTimeStamp()
+    grossWorksheet[f"H{grossRowNum}"].number_format = "yyyy/m/d h:mm:ss"
+
+    # Write specific cut time in new sheet
+    partWorksheetName = getProperSheetName(laserFilePath.stem)
+    if laserCutKeywordsPreviousCount <= 1:
+        try:
+            # Even though sheet name may be duplicated after truncating
+            partWorksheet = wb[partWorksheetName]
+            startRow = partWorksheet.max_row + 1
+        except Exception:
+            partWorksheet = wb.create_sheet(partWorksheetName, 1)
+            startRow = 1 #NOTE: 1 based
+    else:
+        partWorksheet = wb[partWorksheetName]
+        startRow = partWorksheet.max_row + 1
+
+    timeDifferences = []
+    for row in partWorksheet.iter_rows(min_row=startRow, max_col=3, max_row=len(laserCutKeywords[str(laserFilePath)])):
+        for cell in row:
+            if cell.row == 1:
+                if cell.column_letter == "A":
+                    cell.value = "时间节点"
+                if cell.column_letter == "B":
+                    cell.value = "零件信息"
+                if cell.column_letter == "C":
+                    cell.value = "时间差"
+            else:
+                loopIdx = cell.row - 1
+                loopContent = laserCutKeywords[str(laserFilePath)][loopIdx]
+                partLoopMatch = re.match(r"^(.+ .+) (.+)$", loopContent)
+                if partLoopMatch:
+                    partLoopDatetimeStamp = partLoopMatch.groups()[0]
+                    partLoopYield         = partLoopMatch.groups()[1]
+
+                if cell.column_letter == "A":
+                    cell.value = partLoopDatetimeStamp
+                    cell.number_format = "yyyy/m/d h:mm:ss"
+                elif cell.column_letter == "B":
+                    cell.value = partLoopYield
+                elif cell.column_letter == "C":
+                    if cell.row != 2:
+                        timeDifferenceFormula = f"=A{cell.row}-A{cell.row-1}"
+                        datetimeObj1 = convertLogTimeStamp(partWorksheet[f"A{cell.row}"].value)
+                        datetimeObj2 = convertLogTimeStamp(partWorksheet[f"A{cell.row-1}"].value)
+                        if not datetimeObj1 or not datetimeObj2:
+                            continue
+                        timeDifferenceDatetimeObj = datetimeObj1 - datetimeObj2
+                        timeDifferenceLiteral = time.strftime("%H:%M:%S", time.gmtime(timeDifferenceDatetimeObj.total_seconds()))
+                        timeDifferences.append(timeDifferenceLiteral)
+                        cell.value = timeDifferenceFormula
+                        cell.number_format = "h:mm:ss"
+
+
+    # Write the time cost of a long tube back in gross sheet
+    if timeDifferences:
+        counter = Counter(timeDifferences)
+        timeDifferenceMostCommon = counter.most_common()
+        timeDifferenceMostCommonLiteral = timeDifferenceMostCommon[0][0]
+        timeDifferenceMostCommonObj = datetime.datetime.strptime(f"{timeDifferenceMostCommonLiteral}", "%H:%M:%S")
+        for i in range(1, 6):
+            timeDifferenceDelta = datetime.timedelta(seconds=i)
+            timeDifferenceNew = timeDifferenceMostCommonObj + timeDifferenceDelta
+            timeDifferenceNewLiteral = timeDifferenceNew.strftime("%H:%M:%S")
+
+            if timeDifferenceNewLiteral not in timeDifferences:
+                grossWorksheet[f"D{grossRowNum}"] = timeDifferenceNewLiteral
+                grossWorksheet[f"D{grossRowNum}"].number_format = "h:mm:ss"
+                break # }}}
+
+
+def parseStart(): # {{{
     # https://rich.readthedocs.io/en/stable/appendix/colors.html
     print(f"[{getTimeStamp()}]:[yellow]Parsing rtf file:[/yellow] [bright_black]{rtfTarget}")
     openIndexes = []
@@ -127,164 +332,29 @@ def parseStart():
             print(f"[{getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
             continue
 
-        os.makedirs(exportDir, exist_ok=True)
-        # Write laser cut record about the first part being cut in a .txt file
-        txtFilePath = Path(exportDir, laserFilePath.stem + ".txt")
-        print(f"[{getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
-        if not txtFilePath.exists():
-            txtWriteMode = "w"
-            txtEncoding = "utf-8"
+        os.makedirs(localExportDir, exist_ok=True)
 
-            with open(txtFilePath, txtWriteMode, encoding=txtEncoding) as f:
-                for l in laserCutKeywords[str(laserFilePath)]:
-                    f.write(f"{l}\n")
-        else:
-            txtWriteMode = "a"
-            txtEncoding = getEncoding(txtFilePath)
-
-            # Convert file to UTF-8
-            if txtEncoding != "utf-8":
-                with open(txtFilePath, "rb") as f:
-                    byteContent = f.read().decode(txtEncoding)
-                with open(txtFilePath, "w", encoding="utf-8") as f:
-                    f.write(byteContent)
-
-            with open(txtFilePath, txtWriteMode, encoding="utf-8") as f:
-                for l in laserCutKeywords[str(laserFilePath)]:
-                    f.write(f"{l}\n")
+        # Get all .rtf .txt files
+        rtfAll, txtAll = getPartLogList(partLogParentDir)
+        # Write .txt, .rtf files
+        writeTxt(laserFilePath, txtAll)
+        writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated)
+        writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield) # }}}
 
 
-        # Split rtf file based on laserfile name
-        rtfFilePath = Path(exportDir, laserFilePath.stem + ".rtf")
-        print(f"[{getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
-        if not rtfFilePath.exists():
-            rtfWriteMode = "w"
-            rtfEncoding = "utf-8"
-
-            with open(rtfFilePath, rtfWriteMode, encoding=rtfEncoding) as f:
-                f.write(lineSplitedConcatenated)
-        else:
-            rtfWriteMode = "a"
-            rtfEncoding = getEncoding(rtfFilePath)
-
-            # Convert file to UTF-8
-            if rtfEncoding != "utf-8":
-                with open(rtfFilePath, "rb") as f:
-                    byteContent = f.read().decode(rtfEncoding)
-                with open(rtfFilePath, "w", encoding="utf-8") as f:
-                    f.write(byteContent)
-
-            with open(rtfFilePath, rtfWriteMode, encoding="utf-8") as f:
-                f.write(lineSplitedConcatenated)
-
-
-        # Generate excel file for analysis
-
-        # Write info in gross sheet
-        # Skip in current loop if current laser file info has been recorded
-        grossWritenChk = False
-        partWorksheet = wb["总表"]
-        for row in grossWorksheet.iter_rows(min_row=1, max_col=1, max_row=grossWorksheet.max_row):
-            for cell in row:
-                if not cell.value:
-                    break
-                if cell.value == laserFilePath.name:
-                    grossWritenChk = True
-                    grossRowNum = cell.row
-                    break
-
-        if not grossWritenChk:
-            grossRowNum = grossWorksheet.max_row + 1
-            grossWorksheet[f"A{grossRowNum}"] = laserFilePath.name
-            grossWorksheet[f"C{grossRowNum}"] = partLoopYield
-            grossWorksheet[f"E{grossRowNum}"] = f"=D{grossRowNum}/B{grossRowNum}"
-            grossWorksheet[f"E{grossRowNum}"].number_format = "h:mm:ss"
-            grossWorksheet[f"F{grossRowNum}"] = 100
-            grossWorksheet[f"G{grossRowNum}"] = f"=F{grossRowNum}*E{grossRowNum}"
-        else:
-            pass # The gross info has been written before
-
-        grossWorksheet[f"H{grossRowNum}"] = getTimeStamp()
-        grossWorksheet[f"E{grossRowNum}"].number_format = "yyyy/m/d h:mm:ss"
-
-        # Write specific cut time in new sheet
-        partWorksheetName = getProperSheetName(laserFilePath.stem)
-        if laserCutKeywordsPreviousCount <= 1:
-            try:
-                # Even though sheet name may be duplicated after truncating
-                partWorksheet = wb[partWorksheetName]
-                startRow = partWorksheet.max_row + 1
-            except Exception:
-                partWorksheet = wb.create_sheet(partWorksheetName, 1)
-                startRow = 1 #NOTE: 1 based
-        else:
-            partWorksheet = wb[partWorksheetName]
-            startRow = partWorksheet.max_row + 1
-
-        timeDifferences = []
-        for row in partWorksheet.iter_rows(min_row=startRow, max_col=3, max_row=len(laserCutKeywords[str(laserFilePath)])):
-            for cell in row:
-                if cell.row == 1:
-                    if cell.column_letter == "A":
-                        cell.value = "时间节点"
-                    if cell.column_letter == "B":
-                        cell.value = "零件信息"
-                    if cell.column_letter == "C":
-                        cell.value = "时间差"
-                else:
-                    loopIdx = cell.row - 1
-                    loopContent = laserCutKeywords[str(laserFilePath)][loopIdx]
-                    partLoopMatch = re.match(r"^(.+) (.+) (.+)$", loopContent)
-                    if partLoopMatch:
-                        partLoopDateStamp = partLoopMatch.groups()[0]
-                        partLoopTimeStamp = partLoopMatch.groups()[1]
-                        partLoopYield     = partLoopMatch.groups()[2]
-
-                    if cell.column_letter == "A":
-                        cell.value = f"{partLoopDateStamp} {partLoopTimeStamp}"
-                        cell.number_format = "yyyy/m/d h:mm:ss"
-                    elif cell.column_letter == "B":
-                        cell.value = partLoopYield
-                    elif cell.column_letter == "C":
-                        if cell.row != 2:
-                            timeDifferenceFormula = f"=A{cell.row}-A{cell.row-1}"
-                            timeDifferenceDatetimeObj = convertLogTimeStamp(partWorksheet[f"A{cell.row}"].value) - convertLogTimeStamp(partWorksheet[f"A{cell.row-1}"].value)
-                            timeDifferenceLiteral = time.strftime("%H:%M:%S", time.gmtime(timeDifferenceDatetimeObj.total_seconds()))
-                            timeDifferences.append(timeDifferenceLiteral)
-                            cell.value = timeDifferenceFormula
-                            cell.number_format = "h:mm:ss"
-
-
-        # Write the time cost of a long tube back in gross sheet
-        counter = Counter(timeDifferences)
-        timeDifferenceMostCommonLiteral = counter.most_common()[0][0]
-        timeDifferenceMostCommon = datetime.datetime.strptime(f"{timeDifferenceMostCommonLiteral}", "%H:%M:%S")
-        for i in range(1, 6):
-            timeDifferenceDelta = datetime.timedelta(seconds=i)
-            timeDifferenceNew = timeDifferenceMostCommon + timeDifferenceDelta
-            timeDifferenceNewLiteral = timeDifferenceNew.strftime("%H:%M:%S")
-
-            if timeDifferenceNewLiteral not in timeDifferences:
-                grossWorksheet[f"D{grossRowNum}"] = timeDifferenceNewLiteral
-                grossWorksheet[f"D{grossRowNum}"].number_format = "h:mm:ss"
-                break
-
-
-
-
-def saveWorkbook():
+def saveWorkbook(): # {{{
     try:
         wb.save(str(speedTrackFilePath))
+        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{speedTrackFilePath}")
     except Exception as e:
         print(e)
         excelFilePath = Path(
-            exportDir,
+            localExportDir,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"
         )
-        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
         wb.save(str(excelFilePath))
+        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
 
-    print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]")
-
+    print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
