@@ -1,5 +1,6 @@
 import util
 import console
+import config
 
 import datetime
 import os
@@ -68,10 +69,8 @@ def saveWorkbook(): # {{{
         print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{cutRecordPath}")
     except Exception as e:
         print(e)
-        programDir = Path(os.getcwd())
-        localExportDir = Path(programDir, "export")
         excelFilePath  = Path(
-            localExportDir,
+            config.PROGRAMDIR,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"

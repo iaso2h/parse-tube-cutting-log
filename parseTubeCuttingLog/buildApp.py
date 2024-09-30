@@ -1,8 +1,10 @@
-import PyInstaller.__main__
 import rtfParse
+import config
+
+import PyInstaller.__main__
 import os
 from pathlib import Path
-rtfParse.programDir = Path(os.getcwd())
+config.PROGRAMDIR = Path(os.getcwd())
 
 PyInstaller.__main__.run([
     "__main__.py",

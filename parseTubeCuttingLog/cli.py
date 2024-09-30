@@ -1,4 +1,5 @@
 import rtfParse
+import config
 import console
 
 import sys
@@ -22,7 +23,7 @@ def abortExit() -> None:
 
 def rtfFind():
     # Find rtf file to read
-    for f in rtfParse.programDir.iterdir():
+    for f in config.PROGRAMDIR.iterdir():
         if f.suffix == ".rtf":
             rtfParse.rtfCandidates.append(f)
 
@@ -63,8 +64,13 @@ def cutRecord():
     cutRecord.addScreendshots()
 
 
+def dispatchFill():
+    import dispatch
+    dispatch.fillExcel()
+
+
 def cliStart():
-    functions = ["日志分析", "开料记录"]
+    functions = ["日志分析", "开料记录", "填派工单"]
     try:
         ans = beaupy.select(functions, return_index=False)
     except KeyboardInterrupt:
@@ -79,3 +85,5 @@ def cliStart():
         cutRecord()
     elif ans == "日志分析":
         speedTrack()
+    elif ans == "填派工单":
+        dispatchFill()

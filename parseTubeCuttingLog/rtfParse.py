@@ -1,6 +1,7 @@
 import util
-
+import config
 import console
+
 import chardet
 import os
 import re
@@ -18,10 +19,8 @@ if speedTrackFilePath.exists():
     wb = load_workbook(str(speedTrackFilePath))
 else:
     wb = Workbook()
-programPath = Path(__file__).resolve()
+# programPath = Path(__file__).resolve()
 # programDir = programPath.parent
-programDir = Path(os.getcwd())
-localExportDir  = Path(programDir, "export")
 excelCreatedChk = False
 print = console.print
 rtfCandidates = []
@@ -109,7 +108,7 @@ def writeTxt(laserFilePath, txtAll): # {{{
             break
 
     if not txtFilePath:
-        txtFilePath = Path(localExportDir, laserFilePath.stem + ".txt")
+        txtFilePath = Path(config.LOCALEXPORTDIR, laserFilePath.stem + ".txt")
         print(f"[{util.getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
         txtWriteMode = "w"
         txtEncoding = "utf-8"
@@ -148,7 +147,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
             break
 
     if not rtfFilePath:
-        rtfFilePath = Path(localExportDir, laserFilePath.stem + ".rtf")
+        rtfFilePath = Path(config.LOCALEXPORTDIR, laserFilePath.stem + ".rtf")
         print(f"[{util.getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
         rtfWriteMode = "w"
         rtfEncoding = "utf-8"
@@ -330,7 +329,7 @@ def parseStart(): # {{{
             print(f"[{util.getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
             continue
 
-        os.makedirs(localExportDir, exist_ok=True)
+        os.makedirs(config.LOCALEXPORTDIR, exist_ok=True)
 
         # Get all .rtf .txt files
         rtfAll, txtAll = getPartLogList(partLogParentDir)
@@ -347,7 +346,7 @@ def saveWorkbook(): # {{{
     except Exception as e:
         print(e)
         excelFilePath = Path(
-            localExportDir,
+            config.LOCALEXPORTDIR,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"
