@@ -46,12 +46,12 @@ def getPartLogList(partLogParentDir: Path) -> list:
 
 
 
-def getProperSheetName(name: str) -> str:
-    conciseFileNameMatch = re.search(r"^.*?(?=A3)|^.*?(?=6063(-T\d)?)|^.*?(?=6061(-T\d)?)", name, re.I)
+def getProperSheetName(stem: str) -> str:
+    conciseFileNameMatch = re.search(config.LASERFILESTEMMATCH, stem, re.I)
     if conciseFileNameMatch:
-        conciseFileName = conciseFileNameMatch.group().strip()
+        conciseFileName = conciseFileNameMatch.group(3).strip()
     else:
-        conciseFileName = name
+        conciseFileName = stem
 
     if len(conciseFileName) > 31:
         return conciseFileName[:31]
