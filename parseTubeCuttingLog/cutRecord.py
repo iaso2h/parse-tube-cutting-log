@@ -84,6 +84,14 @@ def getImgInfo(p:Path):
             if suffixMatch:
                 partFileName = partFileName[:suffixMatch.span()[1]]
             partFileName = partFileName.strip()
+            commonFix = {
+                    "4架": "H架",
+                    "^3": "A3",
+                    "_02": "_Ø2",
+                    "_1": "_L",
+                    }
+            for key, val in commonFix.items():
+                partFileName = partFileName.replace(key, val)
 
 
     if processCountRead:
