@@ -25,6 +25,7 @@ excelCreatedChk = False
 print = console.print
 rtfCandidates = []
 rtfTarget = ""
+reWhitespace = re.compile(r"\s+")
 
 
 def getPartLogList(partLogParentDir: Path) -> list:
@@ -82,7 +83,7 @@ def writeTxt(laserFilePath, txtAll): # {{{
     # Write laser cut record about the first part being cut in a .txt file
     txtFilePath = None
     for txtfileExistingPath in txtAll:
-        txtFileExistingPathLiteral = str(txtfileExistingPath.name)
+        txtFileExistingPathLiteral = reWhitespace.sub(" ", str(txtfileExistingPath.name)) # Remove multiple whitespaces
         txtFileExistingSuffixMatch = re.search(r".*(?=L\d{4}.*$)", txtFileExistingPathLiteral)
         if txtFileExistingSuffixMatch:
             txtFileExistingLiteralSuffix = txtFileExistingSuffixMatch.group().strip()
@@ -122,7 +123,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
     # Split rtf file based on laserfile name
     rtfFilePath = None
     for rtfFileExistingPath in rtfAll:
-        rtfFileExistingPathLiteral = str(rtfFileExistingPath.name)
+        rtfFileExistingPathLiteral = reWhitespace.sub(" ", str(rtfFileExistingPath.name)) # Remove multiple whitespaces
         rtfFileExistingSuffixMatch = re.search(r".*(?=L\d{4}.*$)", rtfFileExistingPathLiteral)
         if rtfFileExistingSuffixMatch:
             rtfFileExistingLiteralSuffix = rtfFileExistingSuffixMatch.group().strip()
@@ -165,9 +166,9 @@ def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {
     grossWorksheet = wb["总表"]
     for row in grossWorksheet.iter_rows(min_row=1, max_col=1, max_row=grossWorksheet.max_row):
         for cell in row:
-            if not cell.value:
+            if not cell.value: # Empty cell
                 break
-            if cell.value == laserFilePath.name:
+            if reWhitespace.sub(" ", cell.value) == laserFilePath.name:
                 grossWritenChk = True
                 grossRowNum = cell.row
                 break
@@ -176,7 +177,7 @@ def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {
         grossRowNum = grossWorksheet.max_row + 1
         # https://openpyxl.readthedocs.io/en/stable/_modules/openpyxl/styles/numbers.html
         grossWorksheet[f"A{grossRowNum}"] = laserFilePath.name
-        longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", laserFilePath.name)
+        longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", laserFilePath.name, flags=re.IGNORECASE)
         if longTubeLengthMatch:
             grossWorksheet[f"B{grossRowNum}"] = int(longTubeLengthMatch.group())
         grossWorksheet[f"C{grossRowNum}"] = int(partLoopYield)
