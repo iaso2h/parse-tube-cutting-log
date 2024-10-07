@@ -61,7 +61,7 @@ def speedTrack():
 
 def cutRecord():
     import cutRecord
-    cutRecord.addScreendshots()
+    cutRecord.writeNewRecord()
 
 
 def dispatchFill():
