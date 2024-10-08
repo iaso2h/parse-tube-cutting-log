@@ -89,6 +89,8 @@ def getImgInfo(p:Path):
                     "^3": "A3",
                     "_02": "_Ø2",
                     "_1": "_L",
+                    "_Xl.": "_X1",
+                    "28.G": "28.6",
                     }
             for key, val in commonFix.items():
                 partFileName = partFileName.replace(key, val)
@@ -103,25 +105,6 @@ def getImgInfo(p:Path):
             timeStamp = p.stem[5:9] + "/" + timeStamp # Add year prefix
 
     return partFileName, partProcessCount, timeStamp
-
-
-def saveWorkbook(): # {{{
-    try:
-        wb.save(str(cutRecordPath))
-        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{cutRecordPath}")
-    except Exception as e:
-        print(e)
-        excelFilePath  = Path(
-            config.LOCALEXPORTDIR,
-            str(
-                datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
-                ) + ".xlsx"
-        )
-        wb.save(str(excelFilePath))
-        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{excelFilePath}")
-
-    print(f"[{util.getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
-
 
 
 def writeNewRecord():
@@ -155,4 +138,4 @@ def writeNewRecord():
             # Start in a new worksheet
             writeColumn(p)
 
-    saveWorkbook()
+    util.saveWorkbook(cutRecordPath, wb)
