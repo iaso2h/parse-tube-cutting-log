@@ -5,12 +5,13 @@ import console
 import re
 from pathlib import Path
 from openpyxl import load_workbook
+from openpyxl.styles import Border, Side
 
 from openpyxl.worksheet.cell_range import CellRange
 
 print = console.print
 laserCutFileParentPath = Path(r"D:\欧拓图纸\切割文件")
-dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表）.xlsx")
+dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表） - 副本.xlsx")
 partColumnLetter = "E"
 partColumnNum = 5
 wb = load_workbook(str(dispatchFilePath))
@@ -157,10 +158,78 @@ def fillPartInfo(): # {{{
     util.saveWorkbook(dispatchFilePath, wb) # }}}
 
 
-def mergeCells():
+def getRowSections(ws, rowFirst, rowLast):
+    sections = []
+
+    # NOTE: ws["C"] won't yield row greater than the maximum row
+    for i, cell in enumerate(ws["C"]):
+        if sections:
+            lastSectionPair = sections[len(sections) - 1]
+
+        rowNum = i + 1
+
+        if rowNum < rowFirst:
+            continue
+        if rowNum == rowLast:
+            if len(lastSectionPair) % 2 == 1:
+                lastSectionPair.append(rowNum)
+            break
+        if cell.value:
+            if not sections:
+                sections.append([rowNum])
+            else:
+                if len(lastSectionPair) % 2 == 1:
+                    if cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                        lastSectionPair.append(rowNum - 1)
+                        sections.append([rowNum])
+                else:
+                    if cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                        sections.append([rowNum])
+
+    return sections
+
+def beautifyCells():
     ws = wb["OT计件表"]
     rowMax = ws.max_row
-    for i, cell in enumerate(ws["A"]):
-        print(i)
-        print(cell.value)
+    colMax = ws.max_column
+    # Get product id row sections
+    productIdRowSections = getRowSections(ws, 4, rowMax)
 
+
+    # Merge product Id rows
+    for rowPair in productIdRowSections:
+        ws.merge_cells(f"C{rowPair[0]}:C{rowPair[1]}")
+
+
+    # Fill sequence number
+    for rowPair in productIdRowSections:
+        for i, rowNum in enumerate(range(rowPair[0], rowPair[1] + 1)):
+            sequenceNum = i + 1
+            ws[f"A{rowNum}"].value = sequenceNum
+
+
+    # Merge order number rows
+    for rowPair in productIdRowSections:
+        orderNum = ""
+        for rowOrder in ws.iter_rows(min_col=2, max_col=2, min_row=rowPair[0], max_row=rowPair[1]):
+            for cellOrder in rowOrder:
+                if cellOrder.value:
+                    orderNum = cellOrder.value
+                    break
+        if orderNum:
+            ws.merge_cells(f"B{rowPair[0]}:B{rowPair[1]}")
+            ws[f"B{rowPair[0]}"].value = orderNum
+
+
+    # Merge part info rows
+    # Get part info row sections
+    for rowPair in productIdRowSections:
+        partInfoRowSections = getRowSections(ws, rowPair[0], rowPair[1])
+        for rowPartPair in partInfoRowSections:
+            ws.merge_cells(f"D{rowPartPair[0]}:D{rowPartPair[1]}")
+
+    # Add border to
+    thin = Side(border_style="thin", color="FF000000")
+    for row in ws[f"A3:O{rowMax}"]:
+        for cell in row:
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)

@@ -59,18 +59,8 @@ def speedTrack():
     # spinnerParsing.stop()
 
 
-def cutRecord():
-    import cutRecord
-    cutRecord.writeNewRecord()
-
-
-def dispatchFill():
-    import dispatch
-    dispatch.fillExcel()
-
-
 def cliStart():
-    functions = ["日志分析", "开料记录", "填派工单"]
+    functions = ["日志分析", "开料记录", "填派工单",  "派工单优化"]
     try:
         ans = beaupy.select(functions, return_index=False)
     except KeyboardInterrupt:
@@ -82,8 +72,14 @@ def cliStart():
         SystemExit(1)
 
     if ans == "开料记录":
-        cutRecord()
+        import cutRecord
+        cutRecord.writeNewRecord()
     elif ans == "日志分析":
         speedTrack()
     elif ans == "填派工单":
-        dispatchFill()
+        import dispatch
+        dispatch.fillPartInfo()
+        # dispatch.mergeCells()
+    elif ans == "派工单优化":
+        import dispatch
+        dispatch.beautifyCells()
