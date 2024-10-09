@@ -91,6 +91,8 @@ def getImgInfo(p:Path):
                     "_1": "_L",
                     "_Xl.": "_X1",
                     "28.G": "28.6",
+                    ".Z2X": ".ZZX",
+                    "_X1ZZX": "_X1.ZZX",
                     }
             for key, val in commonFix.items():
                 partFileName = partFileName.replace(key, val)
