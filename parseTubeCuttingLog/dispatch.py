@@ -25,7 +25,7 @@ def getAllLaserFiles():
             laserFilePaths.append(p)
 
 
-def fillExcel():
+def fillPartInfo(): # {{{
     getAllLaserFiles()
     ws = wb["OT计件表"]
     if not laserFilePaths:
@@ -84,7 +84,12 @@ def fillExcel():
                         return ""
 
                 # If not exsting part info, then insert new row at the last row
-                newRow = int(mergedRng[1][1:]) + 1
+                # NOTE: mergedRng is a static list whose range has been expaned over time
+                lastRow = int(mergedRng[1][1:])
+                if ws[f"{partColumnLetter}{lastRow}"].value == partFullName:
+                    # Avoid overlapping part info
+                    return ""
+                newRow = lastRow + 1
                 ws.insert_rows(newRow)
                 ws[f"{partColumnLetter}{newRow}"].value = partFullName
                 return newRow # }}}
@@ -149,4 +154,13 @@ def fillExcel():
 
 
 
-    util.saveWorkbook(dispatchFilePath, wb)
+    util.saveWorkbook(dispatchFilePath, wb) # }}}
+
+
+def mergeCells():
+    ws = wb["OT计件表"]
+    rowMax = ws.max_row
+    for i, cell in enumerate(ws["A"]):
+        print(i)
+        print(cell.value)
+
