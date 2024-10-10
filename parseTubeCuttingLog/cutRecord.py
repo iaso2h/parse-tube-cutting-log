@@ -86,6 +86,7 @@ def getImgInfo(p:Path):
             partFileName = partFileName.strip()
             commonFix = {
                     "4架": "H架",
+                    "60B": "608",
                     "^3": "A3",
                     "_02": "_Ø2",
                     "_1": "_L",
@@ -105,6 +106,12 @@ def getImgInfo(p:Path):
         timeStamp = timeStampRead[len(timeStampRead) - 1][1]
         if not targetCompletedChk:
             timeStamp = p.stem[5:9] + "/" + timeStamp # Add year prefix
+
+        commonFix = {
+                ";": ":",
+                }
+        for key, val in commonFix.items():
+            partFileName = partFileName.replace(key, val)
 
     return partFileName, partProcessCount, timeStamp
 

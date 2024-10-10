@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-# Version: 0.0.19
-# Last Modified: 2024-10-09
+# Version: 0.0.20
+# Last Modified: 2024-10-10
 
 import console
 import cli
@@ -12,7 +12,7 @@ print = console.print
 
 if __name__ == "__main__":
     print("[bold white]此TubePro日志分析程序由阮焕编写[bold white]")
-    print("[bold white]版本号: 0.0.19[bold white]")
-    print("[bold white]最后更新: 2024-10-09[bold white]\n\n")
+    print("[bold white]版本号: 0.0.20[bold white]")
+    print("[bold white]最后更新: 2024-10-10[bold white]\n\n")
     cli.cliStart()
     input("Press enter to proceed...")
