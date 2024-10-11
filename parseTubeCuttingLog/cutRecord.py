@@ -84,23 +84,34 @@ def getImgInfo(p:Path):
             if suffixMatch:
                 partFileName = partFileName[:suffixMatch.span()[1]]
             partFileName = partFileName.strip()
-            commonFix = {
+            commonFix = { # {{{
                     "4架": "H架",
                     "60B": "608",
                     "^3": "A3",
-                    "_02": "_Ø2",
+                    "_4": "_Ø",
+                    "_0": "_Ø",
+                    "_中": "_Ø",
+                    "_$": "_Ø",
                     "_1": "_L",
                     "_Xl.": "_X1",
                     "28.G": "28.6",
-                    ".Z2X": ".ZZX",
+                    r"\.2x.": ".ZZX",
+                    r"\.Z2x": ".ZZX",
+                    "_XI": "_X1",
                     "_X1ZZX": "_X1.ZZX",
-                    }
+                    ".ZZK": ".ZZX",
+                    "邕": "管",
+                    } # }}}
             for key, val in commonFix.items():
-                partFileName = partFileName.replace(key, val)
+                pattern = re.compile(key, re.IGNORECASE)
+                partFileName = pattern.sub(val, partFileName)
 
 
     if processCountRead:
-        partProcessCount = processCountRead[1][1]
+        if len(processCountRead) == 2:
+            # In case recognition result is 2
+            partProcessCount = processCountRead[1][1]
+
 
     if timeStampRead:
         timeStamp = timeStampRead[len(timeStampRead) - 1][1]
@@ -109,9 +120,11 @@ def getImgInfo(p:Path):
 
         commonFix = {
                 ";": ":",
+                ".": ":",
+                "+": ":",
                 }
         for key, val in commonFix.items():
-            partFileName = partFileName.replace(key, val)
+            timeStamp = timeStamp.replace(key, val)
 
     return partFileName, partProcessCount, timeStamp
 
