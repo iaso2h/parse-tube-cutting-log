@@ -87,20 +87,22 @@ def getImgInfo(p:Path):
             commonFix = { # {{{
                     "4架": "H架",
                     "60B": "608",
-                    "^3": "A3",
+                    r"\^3": "A3",
                     "_4": "_Ø",
                     "_0": "_Ø",
                     "_中": "_Ø",
-                    "_$": "_Ø",
+                    "[_ ]$": "_Ø",
                     "_1": "_L",
                     "_Xl.": "_X1",
                     "28.G": "28.6",
                     r"\.2x.": ".ZZX",
                     r"\.Z2x": ".ZZX",
+                    r"\.zx": ".ZZX",
                     "_XI": "_X1",
                     "_X1ZZX": "_X1.ZZX",
                     ".ZZK": ".ZZX",
                     "邕": "管",
+                    r" ?\[7.2.*$": "",
                     } # }}}
             for key, val in commonFix.items():
                 pattern = re.compile(key, re.IGNORECASE)
