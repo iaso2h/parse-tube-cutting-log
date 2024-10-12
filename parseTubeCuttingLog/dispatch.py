@@ -214,7 +214,7 @@ def fillPartInfo(): # {{{
                         unMergedProductRng = [cellProductId.coordinate]
                         for rowPart in ws.iter_rows(min_col=partColumnNum, max_col=partColumnNum, min_row=cellProductId.row, max_row=rowMax):
                             for cellPart in rowPart:
-                                if cellPart.value[:2] != productId:
+                                if cellPart.value and cellPart.value[:2] != productId:
                                     unMergedProductRng.append(f"{cellProductId.column_letter}{cellPart.row-1}")
                                     rowNew = writePartInfo(unMergedProductRng)
                                     if rowNew:
@@ -268,21 +268,21 @@ def beautifyCells(): # {{{
 
     # Merge order sequence rows
     for rowPair in productIdRowSections:
-        orderNum = ""
+        orderSequence = ""
         for rowOrder in ws.iter_rows(min_col=2, max_col=2, min_row=rowPair[0], max_row=rowPair[1]):
             for cellOrder in rowOrder:
                 if cellOrder.value:
-                    orderNum = cellOrder.value
+                    orderSequence = cellOrder.value
                     break
-        if orderNum:
+        if orderSequence:
             unmergeCellWithin(ws, rangeAllMerged, f"B{rowPair[0]}", f"B{rowPair[1]}")
             ws.merge_cells(f"B{rowPair[0]}:B{rowPair[1]}")
-            ws[f"B{rowPair[0]}"].value = orderNum
+            ws[f"B{rowPair[0]}"].value = orderSequence
 
     # Merge order number rows
     for rowPair in productIdRowSections:
         orderNum = ""
-        for rowOrder in ws.iter_rows(min_col=2, max_col=2, min_row=rowPair[0], max_row=rowPair[1]):
+        for rowOrder in ws.iter_rows(min_col=4, max_col=4, min_row=rowPair[0], max_row=rowPair[1]):
             for cellOrder in rowOrder:
                 if cellOrder.value:
                     orderNum = cellOrder.value
@@ -303,10 +303,10 @@ def beautifyCells(): # {{{
 
     # Add border to cells
     thin = Side(border_style="thin", color="FF000000")
-    for row in ws[f"A3:O{rowMax}"]:
+    for row in ws[f"A3:P{rowMax}"]:
         for cell in row:
             cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-            if cell.coordinate[0] in ["A", "B", "C", "D"]:
+            if cell.coordinate[0] in ["A", "B", "C", "D", "E"]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
 
     util.saveWorkbook(dispatchFilePath, wb) # }}}
