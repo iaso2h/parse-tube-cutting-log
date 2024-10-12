@@ -8,7 +8,7 @@ from typing import Union, Callable
 from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, Alignment
-
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
 
 print = console.print
@@ -325,9 +325,13 @@ def beautifyCells(): # {{{
     for row in ws[f"A3:P{rowMax}"]:
         for cell in row:
             cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-            if cell.coordinate[0] in ["A", "B", "D", "C", "E"]:
+            if cell.coordinate[0] in ["A", "B", "D"]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             elif cell.coordinate[0] in ["C", "E"]:
-                cell.alignment = Alignment(wrap_text=True)
+                    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    # Add filter button
+    fullRange = "A3:" + get_column_letter(ws.max_column)  + str(ws.max_row)
+    ws.auto_filter.ref = fullRange
 
     util.saveWorkbook(dispatchFilePath, wb) # }}}
