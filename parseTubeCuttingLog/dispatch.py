@@ -4,6 +4,7 @@ import console
 
 import re
 import copy
+from typing import Union, Callable
 from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, Alignment
@@ -52,7 +53,7 @@ def getAllLaserFiles(): # {{{
         if p.is_file() and p.suffix == ".zx" or p.suffix == ".zzx":
             laserFilePaths.append(p) # }}}
 
-def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int): # {{{
+def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int, secondSectionBreakConditionFunc: Union[None, Callable] = None,): # {{{
     sections = []
 
     # NOTE: ws["C"] won't yield row greater than the maximum row
@@ -75,26 +76,44 @@ def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int): # {{{
                 sections.append([rowNum])
             else:
                 if len(lastSectionPair) % 2 == 1:
-                    if cell.value != ws["C{}".format(lastSectionPair[0])].value:
-                        lastSectionPair.append(rowNum - 1)
-                        sections.append([rowNum])
+                    if not secondSectionBreakConditionFunc:
+                        if cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                            if lastSectionPair[0] != rowNum - 1:
+                                lastSectionPair.append(rowNum - 1)
+                                sections.append([rowNum])
+                            else:
+                                # Skip duplicated row, and change the 1st element of the last section pair to current row
+                                lastSectionPair[0] = rowNum
+                    else:
+                        if secondSectionBreakConditionFunc(cell) or cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                            if lastSectionPair[0] != rowNum - 1:
+                                lastSectionPair.append(rowNum - 1)
+                                sections.append([rowNum])
+                            else:
+                                # Skip duplicated row, and change the 1st element of the last section pair to current row
+                                lastSectionPair[0] = rowNum
                 else:
-                    if cell.value != ws["C{}".format(lastSectionPair[0])].value:
-                        sections.append([rowNum])
+                    if not secondSectionBreakConditionFunc:
+                        if cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                            sections.append([rowNum])
+                    else:
+                        if secondSectionBreakConditionFunc(cell) or cell.value != ws["C{}".format(lastSectionPair[0])].value:
+                            sections.append([rowNum])
+
 
     return sections # }}}
 
 def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: str): # {{{
     for rng in rangeAllMerged:
-        if ":" in rng.coord:
-            rangeMerged = rng.coord.split(":")
+        if ":" not in rng.coord:
+            continue
         else:
-            rangeMerged = [rng.coord, rng.coord]
+            rangeMerged = rng.coord.split(":")
 
         rangeMergedTopCol = rangeMerged[0][:1]
         rangeMergedTopRow = rangeMerged[0][1:]
-        rangeMergedBotCol = rangeMerged[0][:1]
-        rangeMergedBotRow = rangeMerged[0][1:]
+        rangeMergedBotCol = rangeMerged[1][:1]
+        rangeMergedBotRow = rangeMerged[1][1:]
         rangeTargetTopCol = rangeTargetTop[:1]
         rangeTargetTopRow = rangeTargetTop[1:]
         rangeTargetBotCol = rangeTargetBot[:1]
@@ -250,7 +269,7 @@ def beautifyCells(): # {{{
     colMax = ws.max_column
     rangeAllMerged = copy.copy(ws.merged_cells.ranges)
     # Get product id row sections
-    productIdRowSections = getRowSections(ws, "C", 4, rowMax)
+    productIdRowSections = getRowSections(ws, "C", 4, rowMax, lambda cell: ws[f"B{cell.column}"].value is not None)
 
 
     # Merge product Id rows
@@ -306,9 +325,9 @@ def beautifyCells(): # {{{
     for row in ws[f"A3:P{rowMax}"]:
         for cell in row:
             cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-            if cell.coordinate[0] in ["A", "B", "D"]:
+            if cell.coordinate[0] in ["A", "B", "D", "C", "E"]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             elif cell.coordinate[0] in ["C", "E"]:
-                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                cell.alignment = Alignment(wrap_text=True)
 
     util.saveWorkbook(dispatchFilePath, wb) # }}}
