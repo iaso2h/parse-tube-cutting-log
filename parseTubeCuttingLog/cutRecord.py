@@ -71,7 +71,6 @@ def getImgInfo(p:Path):
             imgTimeStamp = img.crop((91, 1755, 185, 1864)).filter(ImageFilter.EDGE_ENHANCE)
             cvTimeStamp  = numpy.array(imgTimeStamp)[:, :, ::-1].copy()
 
-    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     titleRead = reader.readtext(cvTitle)
     processCountRead = reader.readtext(cvProcessCount)
     timeStampRead = reader.readtext(cvTimeStamp)
@@ -124,6 +123,7 @@ def getImgInfo(p:Path):
         commonFix = {
                 ";": ":",
                 ".": ":",
+                ",": ":",
                 "+": ":",
                 }
         for key, val in commonFix.items():
