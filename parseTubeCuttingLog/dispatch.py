@@ -306,7 +306,9 @@ def beautifyCells(): # {{{
     for row in ws[f"A3:P{rowMax}"]:
         for cell in row:
             cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-            if cell.coordinate[0] in ["A", "B", "C", "D", "E"]:
+            if cell.coordinate[0] in ["A", "B", "D"]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
+            elif cell.coordinate[0] in ["C", "E"]:
+                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     util.saveWorkbook(dispatchFilePath, wb) # }}}
