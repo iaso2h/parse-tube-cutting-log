@@ -118,7 +118,9 @@ def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: s
         rangeTargetTopRow = rangeTargetTop[1:]
         rangeTargetBotCol = rangeTargetBot[:1]
         rangeTargetBotRow = rangeTargetBot[1:]
-        if rangeMergedTopCol == rangeTargetTopCol and rangeMergedBotCol == rangeTargetBotCol and rangeMergedTopRow >= rangeTargetTopRow and rangeMergedBotRow <= rangeTargetBotRow:
+        if rangeMergedTopCol == rangeTargetTopCol and rangeMergedBotCol == rangeTargetBotCol and rangeMergedTopRow == rangeTargetTopRow and rangeMergedBotRow == rangeTargetBotRow:
+            continue
+        elif rangeMergedTopCol == rangeTargetTopCol and rangeMergedBotCol == rangeTargetBotCol and rangeMergedTopRow >= rangeTargetTopRow and rangeMergedBotRow <= rangeTargetBotRow:
             try:
                 ws.unmerge_cells(rangeMerged[0] + ":" + rangeMerged[1]) # }}}
             except ValueError:
