@@ -3,7 +3,6 @@ import console
 import config
 
 import datetime
-import os
 import re
 import easyocr
 import numpy
@@ -92,7 +91,9 @@ def getImgInfo(p:Path):
                     "_0": "_Ø",
                     "_中": "_Ø",
                     "[_ ]$": "_Ø",
-                    "_1": "_L",
+                    "LGOOO": "L6000",
+                    r"_1(\d+) ": r"_L\1 ",
+                    r"(.*)(L\d+)": r"\1 \2",
                     "_Xl.": "_X1",
                     "28.G": "28.6",
                     r"\.2x.": ".ZZX",
@@ -152,8 +153,15 @@ def writeNewRecord():
     for p in screenshotPaths:
         sheetName = p.stem[5:12]
         ws = wb[sheetName]
-        if ws.max_row != 1:
-            lastPath = Path(ws[f"G{ws.max_row}"].value)
+        rowMax = ws.max_row
+        # fix rowMax to row that contain valid screenshot path
+        while rowMax > 1:
+            if ws[f"G{rowMax}"].value:
+                break
+            else:
+                rowMax = rowMax - 1
+        if rowMax != 1:
+            lastPath = Path(ws[f"G{rowMax}"].value)
             lastDatetime = datetime.datetime.strptime(str(lastPath.stem)[5:], "%Y-%m-%d %H%M%S")
             currentDatetime = datetime.datetime.strptime(str(p.stem)[5:], "%Y-%m-%d %H%M%S")
             # Only save screenshots that are newer than the last one
