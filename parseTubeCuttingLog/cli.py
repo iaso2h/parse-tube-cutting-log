@@ -60,7 +60,7 @@ def speedTrack():
 
 
 def cliStart():
-    functions = ["日志分析", "开料记录", "填派工单",  "派工单优化"]
+    functions = ["日志分析", "开料记录", "开料记录截图重新链接", "派工单",  "派工单优化"]
     try:
         ans = beaupy.select(functions, return_index=False)
     except KeyboardInterrupt:
@@ -74,9 +74,12 @@ def cliStart():
     if ans == "开料记录":
         import cutRecord
         cutRecord.writeNewRecord()
+    elif ans == "开料记录截图重新链接":
+        import cutRecord
+        cutRecord.relinkScreenshots()
     elif ans == "日志分析":
         speedTrack()
-    elif ans == "填派工单":
+    elif ans == "派工单":
         import dispatch
         dispatch.fillPartInfo()
         # dispatch.mergeCells()

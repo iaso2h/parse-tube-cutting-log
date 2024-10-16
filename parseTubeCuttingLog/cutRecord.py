@@ -1,6 +1,5 @@
 import util
 import console
-import config
 
 import datetime
 import re
@@ -170,5 +169,21 @@ def writeNewRecord():
         else:
             # Start in a new worksheet
             writeColumn(p)
+
+    util.saveWorkbook(cutRecordPath, wb)
+
+
+def relinkScreenshots():
+    # TODO: highlight invalid ones
+    for ws in wb.worksheets:
+        if ws.max_row < 2:
+            continue
+        for row in ws.iter_rows(min_row=2, max_col=7, max_row=ws.max_row):
+            for cell in row:
+                if not cell.value:
+                    continue
+                screenshotPath = Path(str(cell.value))
+                if screenshotPath.exists() and screenshotPath.suffix == ".png":
+                    ws[f"G{cell.row}"].hyperlink = cell.value
 
     util.saveWorkbook(cutRecordPath, wb)
