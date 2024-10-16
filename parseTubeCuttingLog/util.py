@@ -1,6 +1,7 @@
 import config
 import console
 
+import shutil
 import datetime
 from pathlib import Path
 
@@ -14,6 +15,15 @@ def getTimeStamp() -> str:
 
 
 def saveWorkbook(dstPath, wb): # {{{
+    if dstPath.exists():
+        backupPath  = Path(
+            config.LOCALEXPORTDIR,
+            dstPath.stem + str(
+                datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
+                ) + ".xlsx"
+        )
+        shutil.copy2(dstPath, backupPath)
+
     try:
         wb.save(str(dstPath))
         print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
