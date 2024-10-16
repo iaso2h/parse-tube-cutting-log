@@ -99,9 +99,9 @@ def getImgInfo(p:Path):
                     r"\.2x.": ".ZZX",
                     r"\.Z2x": ".ZZX",
                     r"\.zx": ".ZZX",
-                    "_XI": "_X1",
-                    "_X1ZZX": "_X1.ZZX",
-                    ".ZZK": ".ZZX",
+                    "[_ ]X[IT]": "_X1",
+                    "[_ ]X1ZZX": "_X1.ZZX",
+                    r"\.ZZK": ".ZZX",
                     "邕": "管",
                     r" ?\[7.2.*$": "",
                     } # }}}
