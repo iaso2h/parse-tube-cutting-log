@@ -17,6 +17,7 @@ dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表）.xlsx")
 partColumnLetter = "E"
 partColumnNum = 5
 wb = load_workbook(str(dispatchFilePath))
+styleBorderThin = Side(border_style="thin", color="FF000000")
 productIdCategory = {
         "306": "购物车",
         "308": "购物车",
@@ -27,10 +28,10 @@ productIdCategory = {
         "515L": "助行器",
         "562L": "助行器",
         "563L": "助行器",
-        "567L": "助行器",
+        "567L-M": "助行器",
         "581": "助行器",
-        "611": "助行器",
-        "618": "助行器",
+        "611": "坐便椅",
+        "618": "坐便椅",
         "608GC": "轮椅",
         "609GC": "轮椅",
         "809": "轮椅",
@@ -41,6 +42,10 @@ productIdCategory = {
         "720L": "拐杖",
         "725L": "拐杖",
         "732L": "拐杖",
+        "732L-S": "拐杖",
+        "732L-M": "拐杖",
+        "732L-L": "拐杖",
+        "734L": "拐杖",
         "737L": "拐杖",
         }
 
@@ -50,7 +55,7 @@ def getAllLaserFiles(): # {{{
         return
 
     for p in laserCutFileParentPath.iterdir():
-        if p.is_file() and p.suffix == ".zx" or p.suffix == ".zzx":
+        if p.is_file() and p.suffix == ".zx" or p.suffix == ".zzx" and "demo" not in p.stem.lower():
             laserFilePaths.append(p) # }}}
 
 def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int, secondSectionBreakConditionFunc: Union[None, Callable] = None,): # {{{
@@ -103,6 +108,19 @@ def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int, secondSectio
 
     return sections # }}}
 
+
+def unmergeAllCell(ws):
+    rangeAllMerged = copy.copy(ws.merged_cells.ranges)
+    for rng in rangeAllMerged:
+        if ":" not in rng.coord:
+            continue
+        if "A1" not in rng and "L2" not in rng and "O1" not in rng:
+            try:
+                ws.unmerge_cells(rng.coord)
+            except KeyError:
+                pass
+
+
 def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: str): # {{{
     for rng in rangeAllMerged:
         if ":" not in rng.coord:
@@ -128,13 +146,19 @@ def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: s
 
 def fillPartInfo(): # {{{
     getAllLaserFiles()
-    ws = wb["OT计件表"]
     if not laserFilePaths:
         print(f"[red]No laser files found in: {str(laserCutFileParentPath)}[/red]")
         raise SystemExit(1)
 
 
+    ws = wb["OT计件表"]
+
+    # Unmerge all cellss
+    unmergeAllCell(ws)
+
     for _, p in enumerate(laserFilePaths):
+        # Get product id row sections
+        productIdRowSections = getRowSections(ws, "C", 4, ws.max_row, lambda cell: ws[f"B{cell.column}"].value is not None)
         # https://regex101.com
         fileNameMatch = re.match(
                 config.LASERFILESTEMMATCH,
@@ -146,11 +170,18 @@ def fillPartInfo(): # {{{
         productId          = fileNameMatch.group(1)
         productIdNote      = fileNameMatch.group(2) # Optional
         if not productIdNote:
-            productIdNote = ""
-        if productId in productIdCategory:
-            productIdFullName = productIdCategory[productId] + productIdNote + "\n" + "OT" + productId
+            if productId in ["513L", "515L"]:
+                productIdNote = "(固定式)"
+            else:
+                productIdNote = ""
         else:
-            productIdFullName = "OT" + productId + productIdNote
+            productId = productId.replace(productIdNote, "")
+
+        if productId in productIdCategory:
+            productIdFullName = productIdCategory[productId] + productIdNote + "\n" + "OT"+ productId
+        else:
+            productIdFullName = productIdNote + "OT" + productId
+
         partName           = fileNameMatch.group(3)
         partComponentName  = fileNameMatch.group(4)  # Optional
         partMaterial       = fileNameMatch.group(5)
@@ -169,6 +200,7 @@ def fillPartInfo(): # {{{
         # print("---------------------------------------------")
         # print(_)
         # print("Laser File:", fileNameMatch.group(0))
+        # print(productIdFullName)
         # print("productId 1:", productId)
         # if productIdNote:
         #     print("productIdNote 2:", productIdNote)
@@ -181,86 +213,38 @@ def fillPartInfo(): # {{{
         #     print("otherPart 8:", otherPart)
         # if partLongTubeLength:
         #     print("partLongTubeLength 10", partLongTubeLength)
-        # print("\n") # }}}
+        # print("\n")
+        # }}}
 
-        def writePartInfo(mergedRng) -> int: # {{{
-            newRow = None
-            for rowPart in ws.iter_rows(min_col=partColumnNum, max_col=partColumnNum, min_row=int(mergedRng[0][1:]), max_row=int(mergedRng[1][1:])):
-                for cellPart in rowPart:
-                    if partFullName == cellPart.value:
-                        return ""
-
-                # If not exsting part info, then insert new row at the last row
-                # NOTE: mergedRng is a static list whose range has been expaned over time
-                lastRow = int(mergedRng[1][1:])
-                if ws[f"{partColumnLetter}{lastRow}"].value == partFullName:
-                    # Avoid overlapping part info
-                    return ""
-                newRow = lastRow + 1
-                ws.insert_rows(newRow)
-                ws[f"{partColumnLetter}{newRow}"].value = partFullName
-                return newRow # }}}
-
-        productExistsChk = False
-        for rowProductId in ws.iter_rows(min_col=3, max_col=3, min_row=4, max_row=ws.max_row):
-
-            rowMax = ws.max_row
-            for cellProductId in rowProductId:
-                # NOTE: merged cell doesn't have value
-                if cellProductId.value and cellProductId.value.strip().replace("-5", "") == productIdFullName:
-                    # Existing product ID
-                    productExistsChk = True
-
-                    # Find existing merged product ID
-                    mergedProudctRng = []
-                    rangeAllMerged = copy.copy(ws.merged_cells.ranges)
-                    for rng in rangeAllMerged:
-                        if f"C{cellProductId.row}" in rng:
-                            if ":" in rng.coord:
-                                mergedProudctRng = rng.coord.split(":")
-                            else:
-                                # Make up range for merged cell consists of only one cell
-                                mergedProudctRng = [rng, rng]
-
-                            break
-
-
-                    if mergedProudctRng:
-                        rowNew = writePartInfo(mergedProudctRng)
-                        if rowNew:
-                            unmergeCellWithin(ws, rangeAllMerged, mergedProudctRng[0], f"C{rowNew}")
-                            ws.merge_cells(mergedProudctRng[0] + ":C" + str(rowNew))
-                    else:
-                        # Find part info range
-                        unMergedProductRng = [cellProductId.coordinate]
-                        for rowPart in ws.iter_rows(min_col=partColumnNum, max_col=partColumnNum, min_row=cellProductId.row, max_row=rowMax):
-                            for cellPart in rowPart:
-                                if cellPart.value and cellPart.value[:2] != productId:
-                                    unMergedProductRng.append(f"{cellProductId.column_letter}{cellPart.row-1}")
-                                    rowNew = writePartInfo(unMergedProductRng)
-                                    if rowNew:
-                                        unmergeCellWithin(ws, rangeAllMerged, mergedProudctRng[0], f"C{rowNew}")
-                                        ws.merge_cells(unMergedProductRng[0] + ":C" + str(rowNew))
-                                    break
-
-                        # If no other product ID exists, append the max row
-                        unMergedProductRng.append(f"{cellProductId.column_letter}{rowMax}")
-                        rowNew = writePartInfo(unMergedProductRng)
-                        # if rowNew:
-                            # ws.merge_cells(unMergedProductRng[0] + ":C" + str(rowNew))
-                        break
-
-                    break
-
-            if not productExistsChk:
-                # If no product ID matches, write new product
-                rowNew = rowMax + 1
-                ws[f"C{rowNew}"] = productIdFullName
-                ws[f"{partColumnLetter}{rowNew}"] = partFullName
-                ws.merge_cells(f"C{rowNew}:C{rowNew}")
+        existingProductId = False
+        existingPartInfo = False
+        for rowPair in productIdRowSections:
+            coordinate = f"C{rowPair[0]}"
+            if str(ws[coordinate].value).strip().replace("-5", "") == productIdFullName:
+                existingProductId = True
                 break
 
+        if existingProductId:
+            for rowNum in range(rowPair[0], rowPair[1] + 1):
+                if not ws[f"{partColumnLetter}{rowNum}"].value:
+                    continue
+                if ws[f"{partColumnLetter}{rowNum}"].value and ws[f"{partColumnLetter}{rowNum}"].value == partFullName:
+                    existingPartInfo = True
+                    break # existing part info
 
+            # new part
+            if not existingPartInfo:
+                rowNew = rowPair[1] + 1
+                ws.insert_rows(rowNew)
+
+                ws[f"{partColumnLetter}{rowNew}"].value     = partFullName
+                ws[f"{partColumnLetter}{rowNew}"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        else:
+            rowNew = ws.max_row + 1
+            ws[f"C{rowNew}"].value     = productIdFullName
+            ws[f"C{rowNew}"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            ws[f"{partColumnLetter}{rowNew}"].value     = partFullName
+            ws[f"{partColumnLetter}{rowNew}"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     util.saveWorkbook(dispatchFilePath, wb) # }}}
 
@@ -291,27 +275,30 @@ def beautifyCells(): # {{{
     for rowPair in productIdRowSections:
         orderSequence = ""
         for rowOrder in ws.iter_rows(min_col=2, max_col=2, min_row=rowPair[0], max_row=rowPair[1]):
+            if orderSequence:
+                unmergeCellWithin(ws, rangeAllMerged, f"B{rowPair[0]}", f"B{rowPair[1]}")
+                ws.merge_cells(f"B{rowPair[0]}:B{rowPair[1]}")
+                ws[f"B{rowPair[0]}"].value = orderSequence
+
             for cellOrder in rowOrder:
                 if cellOrder.value:
                     orderSequence = cellOrder.value
                     break
-        if orderSequence:
-            unmergeCellWithin(ws, rangeAllMerged, f"B{rowPair[0]}", f"B{rowPair[1]}")
-            ws.merge_cells(f"B{rowPair[0]}:B{rowPair[1]}")
-            ws[f"B{rowPair[0]}"].value = orderSequence
 
     # Merge order number rows
     for rowPair in productIdRowSections:
         orderNum = ""
         for rowOrder in ws.iter_rows(min_col=4, max_col=4, min_row=rowPair[0], max_row=rowPair[1]):
+            if orderNum:
+                unmergeCellWithin(ws, rangeAllMerged, f"D{rowPair[0]}", f"D{rowPair[1]}")
+                ws.merge_cells(f"D{rowPair[0]}:D{rowPair[1]}")
+                ws[f"D{rowPair[0]}"].value = orderNum
+                break
+
             for cellOrder in rowOrder:
                 if cellOrder.value:
                     orderNum = cellOrder.value
                     break
-        if orderNum:
-            unmergeCellWithin(ws, rangeAllMerged, f"D{rowPair[0]}", f"D{rowPair[1]}")
-            ws.merge_cells(f"D{rowPair[0]}:D{rowPair[1]}")
-            ws[f"D{rowPair[0]}"].value = orderNum
 
 
     # Merge part info rows
@@ -323,10 +310,14 @@ def beautifyCells(): # {{{
             ws.merge_cells(f"E{rowPartPair[0]}:E{rowPartPair[1]}")
 
     # Add border to cells
-    thin = Side(border_style="thin", color="FF000000")
     for row in ws[f"A3:P{rowMax}"]:
         for cell in row:
-            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+            cell.border = Border(
+                    top=styleBorderThin,
+                    left=styleBorderThin,
+                    right=styleBorderThin,
+                    bottom=styleBorderThin
+                    )
             if cell.coordinate[0] in ["A", "B", "D"]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             elif cell.coordinate[0] in ["C", "E"]:
