@@ -60,7 +60,7 @@ def speedTrack():
 
 
 def cliStart():
-    functions = ["日志分析", "开料记录", "开料记录截图重新链接", "派工单",  "派工单优化"]
+    functions = ["日志分析", "开料记录", "开料记录截图重新链接", "派工单",  "派工单优化", "派工单表格取消合并"]
     try:
         ans = beaupy.select(functions, return_index=False)
     except KeyboardInterrupt:
@@ -86,3 +86,6 @@ def cliStart():
     elif ans == "派工单优化":
         import dispatch
         dispatch.beautifyCells()
+    elif ans == "派工单表格取消合并":
+        import dispatch
+        dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
