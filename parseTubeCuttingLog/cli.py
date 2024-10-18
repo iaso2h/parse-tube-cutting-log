@@ -89,3 +89,4 @@ def cliStart():
     elif ans == "派工单表格取消合并":
         import dispatch
         dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
+        util.saveWorkbook(dispatchFilePath, wb)
