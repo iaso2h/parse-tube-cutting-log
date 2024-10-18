@@ -162,7 +162,11 @@ def writeNewRecord():
             else:
                 rowMax = rowMax - 1
         if rowMax != 1:
-            lastPath = Path(ws[f"G{rowMax}"].value)
+            if "\n" in ws[f"G{rowMax}"].value:
+                paths = str(ws[f"G{rowMax}"].value).split("\n")
+                lastPath = Path(paths[len(paths) - 1])
+            else:
+                lastPath = Path(ws[f"G{rowMax}"].value)
             lastDatetime = datetime.datetime.strptime(str(lastPath.stem)[5:], "%Y-%m-%d %H%M%S")
             currentDatetime = datetime.datetime.strptime(str(p.stem)[5:], "%Y-%m-%d %H%M%S")
             # Only save screenshots that are newer than the last one
