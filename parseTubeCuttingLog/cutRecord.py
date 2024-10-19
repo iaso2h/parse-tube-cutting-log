@@ -84,6 +84,8 @@ def getImgInfo(p:Path):
                 partFileName = partFileName[:suffixMatch.span()[1]]
             partFileName = partFileName.strip()
             commonFix = { # {{{
+                    r"^(\d\d\d)(1)": r"\1L",
+                    "\s{2,}": " ",
                     "4架": "H架",
                     "60B": "608",
                     r"\^3": "A3",
