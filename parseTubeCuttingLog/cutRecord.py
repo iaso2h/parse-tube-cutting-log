@@ -1,3 +1,4 @@
+from os import write
 import util
 import console
 
@@ -133,6 +134,11 @@ def getImgInfo(p:Path):
 
     return partFileName, partProcessCount, timeStamp
 
+def validScreenshotPath(cell):
+    if not cell.value or not Path(cell.value).exists():
+        return False
+    else:
+        return True
 
 def writeNewRecord():
 
@@ -156,22 +162,35 @@ def writeNewRecord():
         ws = wb[sheetName]
         rowMax = ws.max_row
         # fix rowMax to row that contain valid screenshot path
-        while rowMax > 1:
-            if ws[f"G{rowMax}"].value:
-                break
-            else:
-                rowMax = rowMax - 1
+        lastDatetime = None
         if rowMax != 1:
-            if "\n" in ws[f"G{rowMax}"].value:
-                paths = str(ws[f"G{rowMax}"].value).split("\n")
-                lastPath = Path(paths[len(paths) - 1])
-            else:
-                lastPath = Path(ws[f"G{rowMax}"].value)
-            lastDatetime = datetime.datetime.strptime(str(lastPath.stem)[5:], "%Y-%m-%d %H%M%S")
-            currentDatetime = datetime.datetime.strptime(str(p.stem)[5:], "%Y-%m-%d %H%M%S")
-            # Only save screenshots that are newer than the last one
-            if lastDatetime < currentDatetime:
+            # Get the valid last datetime
+            while rowMax > 1:
+                lastScreenshotCell = ws[f"G{rowMax}"]
+                if not validScreenshotPath(lastScreenshotCell):
+                    rowMax = rowMax - 1
+                    continue
+                if "\n" in str(lastScreenshotCell.value).strip():
+                    paths = str(lastScreenshotCell.value).strip().split("\n")
+                    lastPath = Path(paths[len(paths) - 1])
+                else:
+                    lastPath = Path(lastScreenshotCell.value)
+
+                try:
+                    lastDatetime = datetime.datetime.strptime(str(lastPath.stem)[5:], "%Y-%m-%d %H%M%S")
+                    break
+                except ValueError:
+                    rowMax = rowMax - 1
+                    continue
+
+
+            if not lastDatetime:
                 writeColumn(p)
+            else:
+                currentDatetime = datetime.datetime.strptime(str(p.stem)[5:], "%Y-%m-%d %H%M%S")
+                # Only save screenshots that are newer than the last one
+                if lastDatetime < currentDatetime:
+                    writeColumn(p)
         else:
             # Start in a new worksheet
             writeColumn(p)
@@ -186,9 +205,14 @@ def relinkScreenshots():
             continue
         for row in ws.iter_rows(min_row=2, max_col=7, max_row=ws.max_row):
             for cell in row:
-                if not cell.value:
+                if not validScreenshotPath(cell):
                     continue
-                screenshotPath = Path(str(cell.value))
+
+                if "\n" in str(cell.value).strip():
+                    screenshotPaths = str(cell.value).strip().split("\n")
+                    screenshotPath = Path(screenshotPaths[len(screenshotPaths) - 1])
+                else:
+                    screenshotPath = Path(str(cell.value))
                 if screenshotPath.exists() and screenshotPath.suffix == ".png":
                     ws[f"G{cell.row}"].hyperlink = cell.value
 
