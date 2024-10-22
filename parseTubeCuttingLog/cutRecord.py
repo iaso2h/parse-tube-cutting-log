@@ -27,6 +27,11 @@ sheetNames = []
 def initSheetImg(wb):
     for p in screenshotParentPath.iterdir():
         if p.suffix == ".png":
+            with Image.open(p) as img:
+                width, height = img.size
+                if width != 1080 or height != 1920:
+                    continue
+
             screenshotPaths.append(p)
             dateStamp = p.stem[5:12]
             if dateStamp not in sheetNames:
