@@ -164,6 +164,7 @@ def writeNewRecord():
         ws[f"C{newRow}"].value = timeStamp
         ws[f"C{newRow}"].number_format = "yyyy/m/d h:mm:ss"
         ws[f"F{newRow}"].value = str(partProcessCount)
+        ws[f"F{newRow}"].number_format = "@"
         ws[f"G{newRow}"].hyperlink = str(p)
 
     for p in screenshotPaths:
