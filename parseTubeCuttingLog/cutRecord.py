@@ -8,6 +8,7 @@ import easyocr
 import numpy
 from PIL import Image, ImageFilter
 from openpyxl import Workbook, load_workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from pathlib import Path
 
 
@@ -85,32 +86,32 @@ def getImgInfo(p:Path):
             partFileName = partFileName.strip()
             commonFix = { # {{{
                     r"^(\d\d\d)(1)": r"\1L",
-                    r"\s{2,}": " ",
-                    r"4架": "H架",
-                    r"60B": "608",
-                    r"(^.+?) ?(H?[\u4e00-\u9fff]+)": "\1 \2",
-                    r"(^.+?) ?(H?[\u4e00-\u9fff]+) ?[4^]3": "\1 \2 A3",
-                    r"\^3": "A3",
-                    r"_4": "_Ø",
-                    r"_0": "_Ø",
-                    r"_1": "_L",
-                    r"_71": "_T1",
-                    r"_中": "_Ø",
-                    r"[_ ]$": "_Ø",
-                    r"LGOOO": "L6000",
+                    r"\s{2,}": r" ",
+                    r"4架": r"H架",
+                    r"60B": r"608",
+                    r"(^\d{3}[-A-Za-z]{,3}(\(.+?\))?) ?([A-Za-z]?[()\u4e00-\u9fff]+)": r"\1 \3",
+                    r"(^\d{3}[-A-Za-z]{,3}(\(.+?\))?) ?([A-Za-z]?[()\u4e00-\u9fff]+) ?[4^]3": r"\1 \3 A3",
+                    r"\^3": r"A3",
+                    r"_4": r"_Ø",
+                    r"_0": r"_Ø",
+                    r"_1": r"_L",
+                    r"_71": r"_T1",
+                    r"_中": r"_Ø",
+                    r"[_ ]$": r"_Ø",
+                    r"LGOOO": r"L6000",
                     r"_1(\d+) ": r"_L\1 ",
                     r"(.*)(L\d+)": r"\1 \2",
-                    r"_Xl.": "_X1",
-                    r"28.G": "28.6",
-                    r"\.2x.": ".ZZX",
-                    r"\.Z2x": ".ZZX",
-                    r"\.zx": ".ZZX",
-                    r"[_ ]X[IT]": "_X1",
-                    r"[_ ]X1ZZX": "_X1.ZZX",
-                    r"\.ZZK": ".ZZX",
-                    r"邕": "管",
-                    r" ?\[7.2.*$": "",
-                    r"\s+": " ",
+                    r"_Xl.": r"_X1",
+                    r"28.G": r"28.6",
+                    r"\.2x.": r".ZZX",
+                    r"\.Z2x": r".ZZX",
+                    r"\.zx": r".ZZX",
+                    r"[_ ]X[IT]": r"_X1",
+                    r"[_ ]X1ZZX": r"_X1.ZZX",
+                    r"\.ZZK": r".ZZX",
+                    r"邕": r"管",
+                    r" ?\[7.2.*$": r"",
+                    r"\s+": r" ",
                     } # }}}
             for key, val in commonFix.items():
                 pattern = re.compile(key, re.IGNORECASE)
@@ -137,6 +138,9 @@ def getImgInfo(p:Path):
         for key, val in commonFix.items():
             timeStamp = timeStamp.replace(key, val)
 
+    partFileName     = ILLEGAL_CHARACTERS_RE.sub("", partFileName)
+    timeStamp        = ILLEGAL_CHARACTERS_RE.sub("", timeStamp)
+    partProcessCount = ILLEGAL_CHARACTERS_RE.sub("", partProcessCount)
     return partFileName, partProcessCount, timeStamp
 
 def validScreenshotPath(cell):
