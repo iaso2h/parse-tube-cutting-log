@@ -64,7 +64,8 @@ def getImgInfo(p:Path):
 
         imgRGB = img.convert("RGB")
         targetCompletedPixel = imgRGB.getpixel((15, 1810))
-        if targetCompletedPixel == (170, 170, 0):
+        if targetCompletedPixel == (170, 170, 0) or targetCompletedPixel == (255, 155, 155):
+            # Also treat A21 error code as completion message
             targetCompletedChk = True
         else:
             targetCompletedChk = False
@@ -135,6 +136,8 @@ def getImgInfo(p:Path):
             timeStamp = p.stem[5:9] + "/" + timeStamp # Add year prefix
 
         commonFix = {
+                "l": "1",
+                "i": "1",
                 ";": ":",
                 ".": ":",
                 ",": ":",
