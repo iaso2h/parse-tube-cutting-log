@@ -1,12 +1,10 @@
-from os import write
 import util
 import console
 
 import datetime
 import re
-import easyocr
 import numpy
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageGrab
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from pathlib import Path
@@ -20,11 +18,10 @@ else:
     wb = Workbook()
 
 print = console.print
-reader = easyocr.Reader(["ch_sim", "en"])
 
 screenshotPaths = []
 sheetNames = []
-def initSheetImg(wb):
+def initSheetFromScreenshots(wb): # {{{
     for p in screenshotParentPath.iterdir():
         if p.suffix == ".png":
             with Image.open(p) as img:
@@ -48,14 +45,67 @@ def initSheetImg(wb):
             ws["D1"].value = "单号"
             ws["E1"].value = "型号(数量)"
             ws["F1"].value = "已切量/需求量"
-            ws["G1"].value = "截图文件"
+            ws["G1"].value = "截图文件" # }}}
 
 
-def takeScreenshot():
-    pass
+def takeScreenshot(): # {{{
+    import win32gui
+    import win32process
+    import psutil
 
+    hwndTitle = {}
+    def winEnumHandler(hwnd, ctx):
+        if win32gui.IsWindowVisible(hwnd):
+            windowText = win32gui.GetWindowText(hwnd)
+            if windowText:
+                hwndTitle[hwnd] = windowText
+        return True
 
-def getImgInfo(p:Path):
+    win32gui.EnumWindows(winEnumHandler, None)
+
+    partFileName = ""
+    for hwnd, title in hwndTitle.items():
+        if title.startswith("TubePro"):
+            _, pId = win32process.GetWindowThreadProcessId(hwnd)
+            pName = psutil.Process(pId).name()
+            if pName == "TubePro.exe":
+                partFileName = re.sub(r"^TubePro(\(.+?\))? (.+\.zzx).*?$", "\2", title, re.IGNORECASE)
+                win32gui.ShowWindow(hwnd, 5)
+                win32gui.SetForegroundWindow(hwnd)
+                break
+
+    if not partFileName:
+        return print("TubePro isn't running")
+
+    # Check current forground program
+    datetimeNow = datetime.datetime.now()
+    timeStamp = datetimeNow.strftime("%Y/%m/%d %H:%M:%S")
+    screenshot = ImageGrab.grab()
+    screenshotPath = Path(screenshotParentPath, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
+    screenshot.save(screenshotPath)
+
+    # Using OCR to get process count
+    sheetName = screenshotPath.stem[5:12]
+    try:
+        ws = wb[sheetName]
+    except Exception:
+        ws = wb.create_sheet(sheetName, 0)
+        ws["A1"].value = "排样文件"
+        ws["B1"].value = "长料长度"
+        ws["C1"].value = "完成时间"
+        ws["D1"].value = "单号"
+        ws["E1"].value = "型号(数量)"
+        ws["F1"].value = "已切量/需求量"
+        ws["G1"].value = "截图文件"
+
+    newRecord(ws, screenshotPath, partFileName, timeStamp)
+    util.saveWorkbook(cutRecordPath, wb) # }}}
+# }}}
+
+def getImgInfo(p:Path): # {{{
+    import easyocr
+    reader = easyocr.Reader(["ch_sim", "en"])
+
     with Image.open(p) as img:
         imgTitle        = img.crop((91, 0, 900, 25))
         imgProcessCount = img.crop((550, 1665, 765, 1685))
@@ -149,32 +199,48 @@ def getImgInfo(p:Path):
     partFileName     = ILLEGAL_CHARACTERS_RE.sub("", partFileName)
     timeStamp        = ILLEGAL_CHARACTERS_RE.sub("", timeStamp)
     partProcessCount = ILLEGAL_CHARACTERS_RE.sub("", partProcessCount)
-    return partFileName, partProcessCount, timeStamp
+    return partFileName, partProcessCount, timeStamp # }}}
 
-def validScreenshotPath(cell):
+
+def validScreenshotPath(cell): # {{{
     if not cell.value or not Path(cell.value).exists():
         return False
     else:
-        return True
+        return True # }}}
 
-def writeNewRecord():
 
-    initSheetImg(wb)
-    # now = datetime.datetime.now()
-    # sheetNameRightnow = now.strftime(f"%Y-{now.month}")
-    def writeColumn(p):
+def newRecord(ws, p, partFileName=None, timeStamp=None):
+    if not partFileName or not timeStamp:
         partFileName, partProcessCount, timeStamp = getImgInfo(p)
-        longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", partFileName, flags=re.IGNORECASE)
-        newRow = ws.max_row + 1
-        ws[f"A{newRow}"].value = partFileName
-        if longTubeLengthMatch:
-            ws[f"B{newRow}"].value = int(longTubeLengthMatch.group())
-        ws[f"C{newRow}"].value = timeStamp
-        ws[f"C{newRow}"].number_format = "yyyy/m/d h:mm:ss"
-        ws[f"F{newRow}"].value = str(partProcessCount)
-        ws[f"F{newRow}"].number_format = "@"
-        ws[f"G{newRow}"].hyperlink = str(p)
+    else:
+        import easyocr
+        reader = easyocr.Reader(["en"])
+        with Image.open(p) as img:
+            imgProcessCount = img.crop((550, 1665, 765, 1685))
+            cvProcessCount = numpy.array(imgProcessCount)[:, :, ::-1].copy()
+            processCountRead = reader.readtext(cvProcessCount)
+            if processCountRead:
+                if len(processCountRead) == 2:
+                    # In case recognition result is 2
+                    partProcessCount = processCountRead[1][1]
+                    partProcessCount = ILLEGAL_CHARACTERS_RE.sub("", partProcessCount)
 
+    longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", partFileName, flags=re.IGNORECASE)
+
+    rowNew = ws.max_row + 1
+    ws[f"A{rowNew}"].value = partFileName
+    if longTubeLengthMatch:
+        ws[f"B{rowNew}"].value = int(longTubeLengthMatch.group())
+    ws[f"C{rowNew}"].value = timeStamp
+    ws[f"C{rowNew}"].number_format = "yyyy/m/d h:mm:ss"
+    ws[f"F{rowNew}"].value = str(partProcessCount)
+    ws[f"F{rowNew}"].number_format = "@"
+    ws[f"G{rowNew}"].hyperlink = str(p)
+
+
+def updateScreenshotRecords(): # {{{
+
+    initSheetFromScreenshots(wb)
     for p in screenshotPaths:
         sheetName = p.stem[5:12]
         ws = wb[sheetName]
@@ -203,17 +269,17 @@ def writeNewRecord():
 
 
             if not lastDatetime:
-                writeColumn(p)
+                newRecord(ws, p)
             else:
                 currentDatetime = datetime.datetime.strptime(str(p.stem)[5:], "%Y-%m-%d %H%M%S")
                 # Only save screenshots that are newer than the last one
                 if lastDatetime < currentDatetime:
-                    writeColumn(p)
+                    newRecord(ws, p)
         else:
             # Start in a new worksheet
-            writeColumn(p)
+            newRecord(ws, p)
 
-    util.saveWorkbook(cutRecordPath, wb)
+    util.saveWorkbook(cutRecordPath, wb) # }}}
 
 
 def relinkScreenshots():

@@ -1,6 +1,7 @@
 import rtfParse
 import config
 import console
+import util
 
 import sys
 import beaupy
@@ -73,7 +74,7 @@ def cliStart():
 
     if ans == "开料记录":
         import cutRecord
-        cutRecord.writeNewRecord()
+        cutRecord.updateScreenshotRecords()
     elif ans == "开料记录截图重新链接":
         import cutRecord
         cutRecord.relinkScreenshots()
@@ -89,4 +90,4 @@ def cliStart():
     elif ans == "派工单表格取消合并":
         import dispatch
         dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
-        util.saveWorkbook(dispatchFilePath, wb)
+        util.saveWorkbook(dispatch.dispatchFilePath, dispatch.wb)
