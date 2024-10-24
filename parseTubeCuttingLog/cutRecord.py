@@ -69,7 +69,8 @@ def takeScreenshot(): # {{{
             _, pId = win32process.GetWindowThreadProcessId(hwnd)
             pName = psutil.Process(pId).name()
             if pName == "TubePro.exe":
-                partFileName = re.sub(r"^TubePro(\(.+?\))? (.+\.zzx).*?$", "\2", title, re.IGNORECASE)
+                partFileName = re.sub(r"^TubePro(\(.+?\))? (.+\.zzx).*?$", r"\2", title, re.IGNORECASE)
+
                 win32gui.ShowWindow(hwnd, 5)
                 win32gui.SetForegroundWindow(hwnd)
                 break
@@ -215,6 +216,7 @@ def newRecord(ws, p, partFileName=None, timeStamp=None):
     else:
         import easyocr
         reader = easyocr.Reader(["en"])
+        partProcessCount = ""
         with Image.open(p) as img:
             imgProcessCount = img.crop((550, 1665, 765, 1685))
             cvProcessCount = numpy.array(imgProcessCount)[:, :, ::-1].copy()
