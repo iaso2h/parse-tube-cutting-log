@@ -13,7 +13,8 @@ from openpyxl.worksheet.cell_range import CellRange
 
 print = console.print
 laserCutFileParentPath = Path(r"D:\欧拓图纸\切割文件")
-dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表） - 副本.xlsx")
+dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表）.xlsx")
+# TODO: resolve when file path not found
 partColumnLetter = "E"
 partColumnNum = 5
 wb = load_workbook(str(dispatchFilePath))

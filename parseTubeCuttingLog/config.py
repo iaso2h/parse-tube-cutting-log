@@ -7,8 +7,8 @@
 import os
 from pathlib import Path
 
-VERSION     = "0.0.38"
-LASTUPDATED = "2024-10-24"
+VERSION     = "0.0.39"
+LASTUPDATED = "2024-10-25"
 AUTHOR      = "阮焕"
 SILENTMODE = False
 PROGRAMDIR = Path(os.getcwd())

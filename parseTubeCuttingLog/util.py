@@ -1,5 +1,6 @@
 import config
 import console
+import os
 
 import shutil
 import datetime
@@ -15,8 +16,10 @@ def getTimeStamp() -> str:
 
 
 def saveWorkbook(dstPath, wb): # {{{
+    os.makedirs(config.LOCALEXPORTDIR, exist_ok=True)
+
     if dstPath.exists():
-        backupPath  = Path(
+        backupPath = Path(
             config.LOCALEXPORTDIR,
             dstPath.stem + str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
@@ -29,7 +32,7 @@ def saveWorkbook(dstPath, wb): # {{{
         print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
     except Exception as e:
         print(e)
-        fallbackExcelPath  = Path(
+        fallbackExcelPath = Path(
             config.LOCALEXPORTDIR,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
