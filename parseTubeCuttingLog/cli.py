@@ -72,7 +72,10 @@ def cliStart():
         print(e)
         SystemExit(1)
 
-    if ans == "开料记录":
+    if ans == "开料截图":
+        import cutRecord
+        cutRecord.takeScreenshot()
+    elif ans == "开料记录":
         import cutRecord
         cutRecord.updateScreenshotRecords()
     elif ans == "开料记录截图重新链接":

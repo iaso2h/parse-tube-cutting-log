@@ -19,8 +19,8 @@ dpg.bind_font(fontName)
 dpg.create_viewport(
         title="TubePro Aid",
         decorated=False,
-        x_pos=780,
-        y_pos=1200,
+        x_pos=815,
+        y_pos=950,
         width=254,
         height=250,
         always_on_top=True,
