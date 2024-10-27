@@ -4,6 +4,7 @@ import console
 
 import re
 import copy
+import json
 from typing import Union, Callable
 from pathlib import Path
 from openpyxl import load_workbook
@@ -17,36 +18,8 @@ partColumnLetter = "E"
 partColumnNum = 5
 wb = load_workbook(str(config.DISPATCH_FILE_PATH))
 styleBorderThin = Side(border_style="thin", color="FF000000")
-productIdCategory = {
-        "306": "购物车",
-        "308": "购物车",
-        "402L": "洗澡椅",
-        "405L": "洗澡椅",
-        "408L": "洗澡椅",
-        "513L": "助行器",
-        "515L": "助行器",
-        "562L": "助行器",
-        "563L": "助行器",
-        "567L-M": "助行器",
-        "581": "助行器",
-        "611": "坐便椅",
-        "618": "坐便椅",
-        "608GC": "轮椅",
-        "609GC": "轮椅",
-        "809": "轮椅",
-        "809F": "轮椅",
-        "863": "轮椅",
-        "639": "轮椅",
-        "903": "轮椅",
-        "720L": "拐杖",
-        "725L": "腋下拐",
-        "732L": "拐杖",
-        "732L-S": "拐杖",
-        "732L-M": "拐杖",
-        "732L-L": "拐杖",
-        "734L": "四脚拐杖",
-        "737L": "拐杖",
-        }
+with open(config.PRODUCT_ID_CATERGORY_CONVENTION_PATH, "r", encoding="utf-8") as pat:
+    productIdCatergoryConvention = json.load(pat)
 
 
 def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int, secondSectionBreakConditionFunc: Union[None, Callable] = None,): # {{{
@@ -136,6 +109,7 @@ def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: s
                 pass
 
 def fillPartInfo(): # {{{
+
     laserFilePaths = util.getAllLaserFiles()
     if not laserFilePaths:
         print(f"[red]No laser files found in: {str(config.LASER_FILE_DIR_PATH)}[/red]")
@@ -148,8 +122,6 @@ def fillPartInfo(): # {{{
     unmergeAllCell(ws)
 
     for _, p in enumerate(laserFilePaths):
-        # Get product id row sections
-        productIdRowSections = getRowSections(ws, "C", 4, ws.max_row, lambda cell: ws[f"B{cell.column}"].value is not None)
         # https://regex101.com
         fileNameMatch = re.match(
                 config.RE_LASER_FILES_MATCH,
@@ -168,23 +140,27 @@ def fillPartInfo(): # {{{
         else:
             productId = productId.replace(productIdNote, "")
 
-        if productId in productIdCategory:
-            productIdFullName = productIdCategory[productId] + productIdNote + "\n" + "OT"+ productId
+        if productId in productIdCatergoryConvention:
+            productIdFullName = productIdCatergoryConvention[productId] + productIdNote + "\n" + "OT"+ productId
         else:
             productIdFullName = productIdNote + "OT" + productId
 
         partName           = fileNameMatch.group(3)
         partComponentName  = fileNameMatch.group(4)  # Optional
         partMaterial       = fileNameMatch.group(5)
-        partDimension = fileNameMatch.group(6)
+        partDimension                  = fileNameMatch.group(6)
+        partSecondDimensionInccator    = fileNameMatch.group(7) # Optional
+        partSecondDimensionInccatorNum = fileNameMatch.group(9) # Optional
+        partLength    = fileNameMatch.group(10)
         partDimension = partDimension.replace("_", "*")
         partDimension = partDimension.replace("x", "*")
         partDimension = partDimension.replace("∅", "D")
         partDimension = partDimension.replace("Ø", "D")
+        partDimension = partDimension.replace("Φ", "D")
         partDimension = partDimension.strip()
         partFullName = "{} {}\n({}/{})".format(productId, partName, partMaterial, partDimension)
-        otherPart = fileNameMatch.group(8)           # Optional
-        partLongTubeLength = fileNameMatch.group(10) # Optional
+        otherPart = fileNameMatch.group(12)          # Optional
+        partLongTubeLength = fileNameMatch.group(14) # Optional
 
         # DEBUG: # {{{
 
@@ -206,6 +182,9 @@ def fillPartInfo(): # {{{
         #     print("partLongTubeLength 10", partLongTubeLength)
         # print("\n")
         # }}}
+
+        # Get product id row sections
+        productIdRowSections = getRowSections(ws, "C", 4, ws.max_row, lambda cell: ws[f"B{cell.column}"].value is not None)
 
         existingProductId = False
         existingPartInfo = False
@@ -237,7 +216,7 @@ def fillPartInfo(): # {{{
             ws[f"{partColumnLetter}{rowNew}"].value     = partFullName
             ws[f"{partColumnLetter}{rowNew}"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    util.saveWorkbook(config.DISPATCH_FILE_PATH, wb) # }}}
+    util.saveWorkbook(wb, config.DISPATCH_FILE_PATH) # }}}
 
 
 def beautifyCells(): # {{{
@@ -318,4 +297,4 @@ def beautifyCells(): # {{{
     fullRange = "A3:" + get_column_letter(ws.max_column)  + str(ws.max_row)
     ws.auto_filter.ref = fullRange
 
-    util.saveWorkbook(config.DISPATCH_FILE_PATH, wb) # }}}
+    util.saveWorkbook(wb, config.DISPATCH_FILE_PATH) # }}}

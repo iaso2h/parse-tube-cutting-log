@@ -99,11 +99,12 @@ def takeScreenshot(): # {{{
         ws["G1"].value = "截图文件"
 
     newRecord(ws, screenshotPath, partFileName, timeStamp)
-    util.saveWorkbook(config.CUT_RECORD_PATH, wb) # }}}
+    util.saveWorkbook(wb, config.CUT_RECORD_PATH) # }}}
 # }}}
 
 def getImgInfo(p:Path): # {{{
     import easyocr
+    import json
     reader = easyocr.Reader(["ch_sim", "en"])
 
     with Image.open(p) as img:
@@ -140,35 +141,8 @@ def getImgInfo(p:Path): # {{{
             if suffixMatch:
                 partFileName = partFileName[:suffixMatch.span()[1]]
             partFileName = partFileName.strip()
-            commonFix = { # {{{
-                    r"^(\d\d\d)(1)": r"\1L",
-                    r"\s{2,}": r" ",
-                    r"4架": r"H架",
-                    r"60B": r"608",
-                    r"(^\d{3}[-A-Za-z]{,3}(\(.+?\))?) ?([A-Za-z]?[()\u4e00-\u9fff]+)": r"\1 \3",
-                    r"(^\d{3}[-A-Za-z]{,3}(\(.+?\))?) ?([A-Za-z]?[()\u4e00-\u9fff]+) ?[4^]3": r"\1 \3 A3",
-                    r"\^3": r"A3",
-                    r"_4": r"_Ø",
-                    r"_0": r"_Ø",
-                    r"_1": r"_L",
-                    r"_71": r"_T1",
-                    r"_中": r"_Ø",
-                    r"[_ ]$": r"_Ø",
-                    r"LGOOO": r"L6000",
-                    r"_1(\d+) ": r"_L\1 ",
-                    r"(.*)(L\d+)": r"\1 \2",
-                    r"_Xl.": r"_X1",
-                    r"28.G": r"28.6",
-                    r"\.2x.": r".ZZX",
-                    r"\.Z2x": r".ZZX",
-                    r"\.zx": r".ZZX",
-                    r"[_ ]X[IT]": r"_X1",
-                    r"[_ ]X1ZZX": r"_X1.ZZX",
-                    r"\.ZZK": r".ZZX",
-                    r"邕": r"管",
-                    r" ?\[7.2.*$": r"",
-                    r"\s+": r" ",
-                    } # }}}
+            with open(r"D:\欧拓图纸\存档\辅助程序\激光名称OCR修复规则.json", "r", encoding="utf-8") as pat:
+                commonFix = json.load(pat)
             for key, val in commonFix.items():
                 pattern = re.compile(key, re.IGNORECASE)
                 partFileName = pattern.sub(val, partFileName)
@@ -203,7 +177,7 @@ def getImgInfo(p:Path): # {{{
 
 
 def validScreenshotPath(cell): # {{{
-    if not cell.value or not Path(cell.value).exists():
+    if not cell.value or not isinstance(cell.value, str) or not Path(cell.value).exists():
         return False
     else:
         return True # }}}
@@ -280,7 +254,7 @@ def updateScreenshotRecords(): # {{{
             # Start in a new worksheet
             newRecord(ws, p)
 
-    util.saveWorkbook(config.CUT_RECORD_PATH, wb) # }}}
+    util.saveWorkbook(wb, config.CUT_RECORD_PATH) # }}}
 
 
 def relinkScreenshots():
@@ -301,4 +275,4 @@ def relinkScreenshots():
                 if screenshotPath.exists() and screenshotPath.suffix == ".png":
                     ws[f"G{cell.row}"].hyperlink = cell.value
 
-    util.saveWorkbook(config.CUT_RECORD_PATH, wb)
+    util.saveWorkbook(wb, config.CUT_RECORD_PATH)

@@ -75,15 +75,15 @@ def cliStart():
     if ans == "开料截图":
         import cutRecord
         cutRecord.takeScreenshot()
-    elif ans == "开料记录":
+    elif ans == "更新所有开料截图":
         import cutRecord
         cutRecord.updateScreenshotRecords()
-    elif ans == "开料记录截图重新链接":
+    elif ans == "重新链接所有开料截图":
         import cutRecord
         cutRecord.relinkScreenshots()
     elif ans == "日志分析":
         speedTrack()
-    elif ans == "派工单":
+    elif ans == "派工单填写":
         import dispatch
         dispatch.fillPartInfo()
         # dispatch.mergeCells()
@@ -93,4 +93,4 @@ def cliStart():
     elif ans == "派工单表格取消合并":
         import dispatch
         dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
-        util.saveWorkbook(config.DISPATCH_FILE_PATH, dispatch.wb)
+        util.saveWorkbook(dispatch.wb, config.DISPATCH_FILE_PATH)

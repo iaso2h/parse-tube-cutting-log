@@ -15,23 +15,33 @@ def getTimeStamp() -> str:
     return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
 
-def saveWorkbook(dstPath, wb): # {{{
+def saveWorkbook(wb, dstPath=None): # {{{
     os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
 
-    if dstPath.exists():
-        backupPath = Path(
-            config.LOCAL_EXPORT_DIR,
-            dstPath.stem + str(
-                datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
-                ) + ".xlsx"
-        )
-        shutil.copy2(dstPath, backupPath)
+    if dstPath:
+        if dstPath.exists():
+            backupPath = Path(
+                config.LOCAL_EXPORT_DIR,
+                dstPath.stem + str(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
+                    ) + ".xlsx"
+            )
+            shutil.copy2(dstPath, backupPath)
 
-    try:
-        wb.save(str(dstPath))
-        print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
-    except Exception as e:
-        print(e)
+        try:
+            wb.save(str(dstPath))
+            print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
+        except Exception as e:
+            print(e)
+            fallbackExcelPath = Path(
+                config.LOCAL_EXPORT_DIR,
+                str(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
+                    ) + ".xlsx"
+            )
+            wb.save(str(fallbackExcelPath))
+            print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
+    else:
         fallbackExcelPath = Path(
             config.LOCAL_EXPORT_DIR,
             str(
