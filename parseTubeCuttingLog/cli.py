@@ -24,7 +24,7 @@ def abortExit() -> None:
 
 def rtfFind():
     # Find rtf file to read
-    for f in config.PROGRAMDIR.iterdir():
+    for f in config.PROGRAM_DIR.iterdir():
         if f.suffix == ".rtf":
             rtfParse.rtfCandidates.append(f)
 
@@ -93,4 +93,4 @@ def cliStart():
     elif ans == "派工单表格取消合并":
         import dispatch
         dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
-        util.saveWorkbook(dispatch.dispatchFilePath, dispatch.wb)
+        util.saveWorkbook(config.DISPATCH_FILE_PATH, dispatch.wb)

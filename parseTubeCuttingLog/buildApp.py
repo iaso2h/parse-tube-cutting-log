@@ -4,7 +4,7 @@ import config
 import PyInstaller.__main__
 import os
 from pathlib import Path
-config.PROGRAMDIR = Path(os.getcwd())
+config.PROGRAM_DIR = Path(os.getcwd())
 
 PyInstaller.__main__.run([
     "__main__.py",

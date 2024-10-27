@@ -1,5 +1,6 @@
 import util
 import console
+import config
 
 import datetime
 import re
@@ -10,10 +11,8 @@ from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from pathlib import Path
 
 
-screenshotParentPath = Path(r"D:\欧拓图纸\存档\截图")
-cutRecordPath = Path(r"D:\欧拓图纸\存档\开料记录.xlsx")
-if cutRecordPath.exists():
-    wb = load_workbook(str(cutRecordPath))
+if config.CUT_RECORD_PATH.exists():
+    wb = load_workbook(str(config.CUT_RECORD_PATH))
 else:
     wb = Workbook()
 
@@ -22,7 +21,7 @@ print = console.print
 screenshotPaths = []
 sheetNames = []
 def initSheetFromScreenshots(wb): # {{{
-    for p in screenshotParentPath.iterdir():
+    for p in config.SCREENSHOTDIRPATH.iterdir():
         if p.suffix == ".png":
             with Image.open(p) as img:
                 width, height = img.size
@@ -82,7 +81,7 @@ def takeScreenshot(): # {{{
     datetimeNow = datetime.datetime.now()
     timeStamp = datetimeNow.strftime("%Y/%m/%d %H:%M:%S")
     screenshot = ImageGrab.grab()
-    screenshotPath = Path(screenshotParentPath, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
+    screenshotPath = Path(config.SCREENSHOTDIRPATH, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
     screenshot.save(screenshotPath)
 
     # Using OCR to get process count
@@ -100,7 +99,7 @@ def takeScreenshot(): # {{{
         ws["G1"].value = "截图文件"
 
     newRecord(ws, screenshotPath, partFileName, timeStamp)
-    util.saveWorkbook(cutRecordPath, wb) # }}}
+    util.saveWorkbook(config.CUT_RECORD_PATH, wb) # }}}
 # }}}
 
 def getImgInfo(p:Path): # {{{
@@ -281,7 +280,7 @@ def updateScreenshotRecords(): # {{{
             # Start in a new worksheet
             newRecord(ws, p)
 
-    util.saveWorkbook(cutRecordPath, wb) # }}}
+    util.saveWorkbook(config.CUT_RECORD_PATH, wb) # }}}
 
 
 def relinkScreenshots():
@@ -302,4 +301,4 @@ def relinkScreenshots():
                 if screenshotPath.exists() and screenshotPath.suffix == ".png":
                     ws[f"G{cell.row}"].hyperlink = cell.value
 
-    util.saveWorkbook(cutRecordPath, wb)
+    util.saveWorkbook(config.CUT_RECORD_PATH, wb)

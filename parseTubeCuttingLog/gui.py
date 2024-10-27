@@ -8,7 +8,7 @@ import dearpygui.dearpygui as dpg
 
 def unmergeAllCellSave():
     dispatch.unmergeAllCell(dispatch.wb["OT计件表"])
-    util.saveWorkbook(dispatch.dispatchFilePath, dispatch.wb)
+    util.saveWorkbook(config.DISPATCH_FILE_PATH, dispatch.wb)
 
 dpg.create_context()
 reg = dpg.add_font_registry()
@@ -40,9 +40,9 @@ with dpg.window(
     dpg.add_text(f"版本号: {config.VERSION}")
     dpg.add_text(f"最后更新: {config.LASTUPDATED}")
     dpg.add_button(label="开料截图",             callback=cutRecord.takeScreenshot)
-    dpg.add_button(label="开料记录",             callback=cutRecord.updateScreenshotRecords)
-    dpg.add_button(label="开料记录截图重新链接", callback=cutRecord.relinkScreenshots)
-    dpg.add_button(label="派工单",               callback=dispatch.fillPartInfo)
+    dpg.add_button(label="更新所有开料截图",             callback=cutRecord.updateScreenshotRecords)
+    dpg.add_button(label="重新链接所有开料截图", callback=cutRecord.relinkScreenshots)
+    # dpg.add_button(label="派工单",               callback=dispatch.fillPartInfo)
     dpg.add_button(label="派工单优化",           callback=dispatch.beautifyCells)
     dpg.add_button(label="派工单表格取消合并",   callback=unmergeAllCellSave)
 

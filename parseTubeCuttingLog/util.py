@@ -16,11 +16,11 @@ def getTimeStamp() -> str:
 
 
 def saveWorkbook(dstPath, wb): # {{{
-    os.makedirs(config.LOCALEXPORTDIR, exist_ok=True)
+    os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
 
     if dstPath.exists():
         backupPath = Path(
-            config.LOCALEXPORTDIR,
+            config.LOCAL_EXPORT_DIR,
             dstPath.stem + str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"
@@ -33,7 +33,7 @@ def saveWorkbook(dstPath, wb): # {{{
     except Exception as e:
         print(e)
         fallbackExcelPath = Path(
-            config.LOCALEXPORTDIR,
+            config.LOCAL_EXPORT_DIR,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"
@@ -42,3 +42,16 @@ def saveWorkbook(dstPath, wb): # {{{
         print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
 
     print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
+
+
+def getAllLaserFiles(): # {{{
+    laserFilePaths = []
+
+    if not config.LASER_FILE_DIR_PATH.exists():
+        return
+
+    for p in config.LASER_FILE_DIR_PATH.iterdir():
+        if p.is_file() and p.suffix == ".zx" or p.suffix == ".zzx" and "demo" not in p.stem.lower():
+            laserFilePaths.append(p)
+
+    return laserFilePaths # }}}

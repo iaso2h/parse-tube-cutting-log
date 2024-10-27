@@ -13,10 +13,8 @@ from striprtf.striprtf import rtf_to_text
 from openpyxl import Workbook, load_workbook
 
 
-speedTrackFilePath = Path("D:\欧拓图纸\存档\耗时计算\统计表格.xlsx")
-partLogParentDir = Path(r"D:\欧拓图纸\存档\耗时计算")
-if speedTrackFilePath.exists():
-    wb = load_workbook(str(speedTrackFilePath))
+if config.LASER_PORFILING_PATH.exists():
+    wb = load_workbook(str(config.LASER_PORFILING_PATH))
 else:
     wb = Workbook()
 # programPath = Path(__file__).resolve()
@@ -28,10 +26,10 @@ rtfTarget = ""
 reWhitespace = re.compile(r"\s+")
 
 
-def getPartLogList(partLogParentDir: Path) -> list:
+def getPartLogList() -> list | list:
     rtfAll = []
     txtAll = []
-    for srcPath in partLogParentDir.iterdir():
+    for srcPath in config.LASER_LOG_PATH.iterdir():
         if srcPath.is_dir() and re.search(r"^\d", srcPath.name):
             rtfSub, txtSub = getPartLogList(srcPath)
             rtfAll.extend(rtfSub)
@@ -47,7 +45,7 @@ def getPartLogList(partLogParentDir: Path) -> list:
 
 
 def getProperSheetName(stem: str) -> str:
-    conciseFileNameMatch = re.search(config.LASERFILESTEMMATCH, stem, re.I)
+    conciseFileNameMatch = re.search(config.RE_LASER_FILES_MATCH, stem, re.I)
     if conciseFileNameMatch:
         conciseFileName = conciseFileNameMatch.group(3).strip()
     else:
@@ -109,7 +107,7 @@ def writeTxt(laserFilePath, txtAll): # {{{
             break
 
     if not txtFilePath:
-        txtFilePath = Path(config.LOCALEXPORTDIR, laserFilePath.stem + ".txt")
+        txtFilePath = Path(config.LOCAL_EXPORT_DIR, laserFilePath.stem + ".txt")
         print(f"[{util.getTimeStamp()}]:[bold purple]Saving txt file: [/bold purple][bright_black]{txtFilePath}")
         txtWriteMode = "w"
         txtEncoding = "utf-8"
@@ -148,7 +146,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
             break
 
     if not rtfFilePath:
-        rtfFilePath = Path(config.LOCALEXPORTDIR, laserFilePath.stem + ".rtf")
+        rtfFilePath = Path(config.LOCAL_EXPORT_DIR, laserFilePath.stem + ".rtf")
         print(f"[{util.getTimeStamp()}]:[bold blue]Saving rtf file: [/bold blue][bright_black]{rtfFilePath}")
         rtfWriteMode = "w"
         rtfEncoding = "utf-8"
@@ -330,10 +328,10 @@ def parseStart(): # {{{
             print(f"[{util.getTimeStamp()}]:[bright_black]Current laser file haven't completed two loops yet. Skip")
             continue
 
-        os.makedirs(config.LOCALEXPORTDIR, exist_ok=True)
+        os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
 
         # Get all .rtf .txt files
-        rtfAll, txtAll = getPartLogList(partLogParentDir)
+        rtfAll, txtAll = getPartLogList()
         # Write .txt, .rtf files
         writeTxt(laserFilePath, txtAll)
         writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated)
@@ -342,12 +340,12 @@ def parseStart(): # {{{
 
 def saveWorkbook(): # {{{
     try:
-        wb.save(str(speedTrackFilePath))
-        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{speedTrackFilePath}")
+        wb.save(str(config.LASER_PORFILING_PATH))
+        print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{config.LASER_PORFILING_PATH}")
     except Exception as e:
         print(e)
         excelFilePath = Path(
-            config.LOCALEXPORTDIR,
+            config.LOCAL_EXPORT_DIR,
             str(
                 datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                 ) + ".xlsx"

@@ -12,12 +12,10 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
 
 print = console.print
-laserCutFileParentPath = Path(r"D:\欧拓图纸\切割文件")
-dispatchFilePath = Path(r"D:\欧拓图纸\派工单（模板+空表）.xlsx")
 # TODO: resolve when file path not found
 partColumnLetter = "E"
 partColumnNum = 5
-wb = load_workbook(str(dispatchFilePath))
+wb = load_workbook(str(config.DISPATCH_FILE_PATH))
 styleBorderThin = Side(border_style="thin", color="FF000000")
 productIdCategory = {
         "306": "购物车",
@@ -41,23 +39,15 @@ productIdCategory = {
         "639": "轮椅",
         "903": "轮椅",
         "720L": "拐杖",
-        "725L": "拐杖",
+        "725L": "腋下拐",
         "732L": "拐杖",
         "732L-S": "拐杖",
         "732L-M": "拐杖",
         "732L-L": "拐杖",
-        "734L": "拐杖",
+        "734L": "四脚拐杖",
         "737L": "拐杖",
         }
 
-laserFilePaths = []
-def getAllLaserFiles(): # {{{
-    if not laserCutFileParentPath.exists():
-        return
-
-    for p in laserCutFileParentPath.iterdir():
-        if p.is_file() and p.suffix == ".zx" or p.suffix == ".zzx" and "demo" not in p.stem.lower():
-            laserFilePaths.append(p) # }}}
 
 def getRowSections(ws, colLetter: str, rowFirst: int, rowLast: int, secondSectionBreakConditionFunc: Union[None, Callable] = None,): # {{{
     sections = []
@@ -146,9 +136,9 @@ def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: s
                 pass
 
 def fillPartInfo(): # {{{
-    getAllLaserFiles()
+    laserFilePaths = util.getAllLaserFiles()
     if not laserFilePaths:
-        print(f"[red]No laser files found in: {str(laserCutFileParentPath)}[/red]")
+        print(f"[red]No laser files found in: {str(config.LASER_FILE_DIR_PATH)}[/red]")
         raise SystemExit(1)
 
 
@@ -162,7 +152,7 @@ def fillPartInfo(): # {{{
         productIdRowSections = getRowSections(ws, "C", 4, ws.max_row, lambda cell: ws[f"B{cell.column}"].value is not None)
         # https://regex101.com
         fileNameMatch = re.match(
-                config.LASERFILESTEMMATCH,
+                config.RE_LASER_FILES_MATCH,
                 str(p.stem)
                 )
         if not fileNameMatch:
@@ -247,7 +237,7 @@ def fillPartInfo(): # {{{
             ws[f"{partColumnLetter}{rowNew}"].value     = partFullName
             ws[f"{partColumnLetter}{rowNew}"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    util.saveWorkbook(dispatchFilePath, wb) # }}}
+    util.saveWorkbook(config.DISPATCH_FILE_PATH, wb) # }}}
 
 
 def beautifyCells(): # {{{
@@ -328,4 +318,4 @@ def beautifyCells(): # {{{
     fullRange = "A3:" + get_column_letter(ws.max_column)  + str(ws.max_row)
     ws.auto_filter.ref = fullRange
 
-    util.saveWorkbook(dispatchFilePath, wb) # }}}
+    util.saveWorkbook(config.DISPATCH_FILE_PATH, wb) # }}}
