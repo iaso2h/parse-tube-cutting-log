@@ -1,6 +1,24 @@
 import console
-import cli
 import config
+
+if not config.PARENT_DIR_PATH.exists():
+    import os
+    cwd = os.getcwd()
+    idx = cwd.find("欧拓图纸")
+    if idx > -1:
+        from pathlib import Path
+        config.PARENT_DIR_PATH = Path(cwd[:idx+5])
+        config.updaPath()
+    else:
+        import sys
+        print('无法找到"欧拓图纸"文件夹')
+        sys.exit()
+else:
+    config.updaPath()
+
+
+
+import cli
 import argparse
 
 print = console.print
