@@ -1,4 +1,3 @@
-import rtfParse
 import config
 
 import PyInstaller.__main__

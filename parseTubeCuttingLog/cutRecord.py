@@ -21,7 +21,7 @@ print = console.print
 screenshotPaths = []
 sheetNames = []
 def initSheetFromScreenshots(wb): # {{{
-    for p in config.SCREENSHOTDIRPATH.iterdir():
+    for p in config.SCREENSHOT_DIR_PATH.iterdir():
         if p.suffix == ".png":
             with Image.open(p) as img:
                 width, height = img.size
@@ -81,7 +81,7 @@ def takeScreenshot(): # {{{
     datetimeNow = datetime.datetime.now()
     timeStamp = datetimeNow.strftime("%Y/%m/%d %H:%M:%S")
     screenshot = ImageGrab.grab()
-    screenshotPath = Path(config.SCREENSHOTDIRPATH, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
+    screenshotPath = Path(config.SCREENSHOT_DIR_PATH, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
     screenshot.save(screenshotPath)
 
     # Using OCR to get process count
@@ -141,7 +141,7 @@ def getImgInfo(p:Path): # {{{
             if suffixMatch:
                 partFileName = partFileName[:suffixMatch.span()[1]]
             partFileName = partFileName.strip()
-            with open(r"D:\欧拓图纸\存档\辅助程序\激光名称OCR修复规则.json", "r", encoding="utf-8") as pat:
+            with open(config.LASER_OCR_FIX_PATH, "r", encoding="utf-8") as pat:
                 commonFix = json.load(pat)
             for key, val in commonFix.items():
                 pattern = re.compile(key, re.IGNORECASE)

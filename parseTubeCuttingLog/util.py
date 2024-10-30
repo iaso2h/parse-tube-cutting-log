@@ -18,7 +18,7 @@ def getTimeStamp() -> str:
 def saveWorkbook(wb, dstPath=None): # {{{
     os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
 
-    if dstPath:
+    if dstPath and config.DEV_MODE:
         if dstPath.exists():
             backupPath = Path(
                 config.LOCAL_EXPORT_DIR,

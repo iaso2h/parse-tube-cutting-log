@@ -1,5 +1,6 @@
 import console
 import config
+config.updaPath()
 
 if not config.PARENT_DIR_PATH.exists():
     import os
@@ -13,8 +14,6 @@ if not config.PARENT_DIR_PATH.exists():
         import sys
         print('无法找到"欧拓图纸"文件夹')
         sys.exit()
-else:
-    config.updaPath()
 
 
 
@@ -30,7 +29,9 @@ if __name__ == "__main__":
     print(f"[bold white]最后更新: {config.LASTUPDATED}[bold white]\n\n")
     argParser = argparse.ArgumentParser()
     argParser.add_argument("-L", "--legacy", action="store_true")
+    argParser.add_argument("-D", "--dev",    action="store_true")
     args = argParser.parse_args()
+    config.DEV_MODE = args.dev
     if args.legacy:
         cli.cliStart()
         input("Press enter to proceed...")

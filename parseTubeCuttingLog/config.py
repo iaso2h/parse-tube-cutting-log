@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-# Version: 0.0.43
-# Last Modified: 2024-10-27
+# Version: 0.0.44
+# Last Modified: 2024-10-30
 
 import os
 from pathlib import Path
@@ -11,6 +11,7 @@ VERSION     = "0.0.42"
 LASTUPDATED = "2024-10-27"
 AUTHOR      = "阮焕"
 SILENT_MODE = False
+DEV_MODE    = False
 PROGRAM_DIR = Path(os.getcwd())
 LOCAL_EXPORT_DIR = Path(PROGRAM_DIR, "export")
 RE_LASER_FILES_MATCH = r"^(\d{3}[-a-zA-Z]{,3}(\(.+?\))?) (([^_]+? )?[^_]+?) ([^_]{,8})[_*x]([^\u4e00-\u9fff]+?(([RT])?([0-9.]+?))[_*x]L([.0-9]{2,5}))( \d+?支 \+ (.*?) \d+?支)?( L(\d{4}))?_X1$"
