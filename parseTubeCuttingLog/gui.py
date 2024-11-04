@@ -1,5 +1,6 @@
 import config
 import cutRecord
+import json
 import dispatch
 import partList
 import util
@@ -17,28 +18,30 @@ reg = dpg.add_font_registry()
 fontName = dpg.add_font(file=r"C:\Windows\Fonts\msyh.ttc", size=18, parent=reg)
 dpg.add_font_range(0x0001, 0x9FFF, parent=fontName)
 dpg.bind_font(fontName)
+with open(config.GUI_GEOMETRY_PATH, "r", encoding="utf-8") as f:
+    geo = json.load(f)
 
 dpg.create_viewport(
         title="TubePro Aid",
         decorated=False,
-        x_pos=815,
-        y_pos=950,
-        width=254,
-        height=250,
+        x_pos=geo["x_pos"],
+        y_pos=geo["y_pos"],
+        width=geo["width"],
+        height=geo["height"],
         always_on_top=True,
         resizable=False,
     )
 dpg.setup_dearpygui()
 
 with dpg.window(
-        label="功能列表",
+        label="TubePro辅助程序",
         autosize=True,
         no_close=True,
         no_title_bar=False,
         no_move=True,
         no_collapse=True
     ):
-    dpg.add_text(f"此TubePro日志分析程序由{config.AUTHOR}编写")
+    dpg.add_text(f"编写: {config.AUTHOR}")
     dpg.add_text(f"版本号: {config.VERSION}")
     dpg.add_text(f"最后更新: {config.LASTUPDATED}")
     dpg.add_button(label="开料截图",             callback=cutRecord.takeScreenshot)

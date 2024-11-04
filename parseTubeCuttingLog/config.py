@@ -1,14 +1,14 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-# Version: 0.0.44
-# Last Modified: 2024-10-30
+# Version: 0.0.45
+# Last Modified: 2024-11-02
 
 import os
 from pathlib import Path
 
-VERSION     = "0.0.42"
-LASTUPDATED = "2024-10-27"
+VERSION     = "0.0.45"
+LASTUPDATED = "2024-11-02"
 AUTHOR      = "阮焕"
 SILENT_MODE = False
 DEV_MODE    = False
@@ -26,6 +26,7 @@ LASER_PORFILING_PATH = None
 LASER_LOG_PATH       = None
 LASER_OCR_FIX_PATH                   = None
 PRODUCT_ID_CATERGORY_CONVENTION_PATH = None
+GUI_GEOMETRY_PATH = None
 
 def updaPath():
     global LASER_FILE_DIR_PATH
@@ -36,6 +37,7 @@ def updaPath():
     global LASER_LOG_PATH
     global LASER_OCR_FIX_PATH
     global PRODUCT_ID_CATERGORY_CONVENTION_PATH
+    global GUI_GEOMETRY_PATH
 
     LASER_FILE_DIR_PATH  = Path(PARENT_DIR_PATH, r"切割文件")
     DISPATCH_FILE_PATH   = Path(PARENT_DIR_PATH, r"派工单（模板+空表）.xlsx")
@@ -45,3 +47,4 @@ def updaPath():
     LASER_LOG_PATH       = Path(PARENT_DIR_PATH, r"存档\耗时计算")
     LASER_OCR_FIX_PATH                   = Path(PARENT_DIR_PATH, r"辅助程序\激光名称OCR修复规则.json")
     PRODUCT_ID_CATERGORY_CONVENTION_PATH = Path(PARENT_DIR_PATH, r"辅助程序\型号类别对照规则.json")
+    GUI_GEOMETRY_PATH = Path(PARENT_DIR_PATH, r"辅助程序\程序几何.json")

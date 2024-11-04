@@ -8,9 +8,6 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 
-with open(config.PRODUCT_ID_CATERGORY_CONVENTION_PATH, "r", encoding="utf-8") as pat:
-    productIdCatergoryConvention = json.load(pat)
-
 wb = Workbook()
 print = console.print
 
