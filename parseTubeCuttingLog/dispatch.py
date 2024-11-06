@@ -116,7 +116,7 @@ def fillPartInfo(): # {{{
         raise SystemExit(1)
 
 
-    ws = wb["OT计件表"]
+    ws = wb.active
 
     # Unmerge all cellss
     unmergeAllCell(ws)
@@ -220,7 +220,7 @@ def fillPartInfo(): # {{{
 
 
 def beautifyCells(): # {{{
-    ws = wb["OT计件表"]
+    ws = wb.active
     rowMax = ws.max_row
     colMax = ws.max_column
     rangeAllMerged = copy.copy(ws.merged_cells.ranges)
