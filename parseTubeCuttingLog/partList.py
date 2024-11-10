@@ -3,7 +3,6 @@ import console
 import util
 
 import re
-import json
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
@@ -46,7 +45,7 @@ def exportDimensions():
         productId          = fileNameMatch.group(1)
         productIdNote      = fileNameMatch.group(2) # name
         partName           = fileNameMatch.group(3)
-        partComponentName  = fileNameMatch.group(4)  # Optional
+        partComponentName  = fileNameMatch.group(4) # Optional
         partMaterial       = fileNameMatch.group(5)
         partDimension                  = fileNameMatch.group(6)
         part2ndDimensionInccator    = fileNameMatch.group(7) # Optional
@@ -97,6 +96,6 @@ def exportDimensions():
 
     ws.add_table(tab)
 
-    util.saveWorkbook(wb)
+    util.saveWorkbook(wb, None, True)
 
 

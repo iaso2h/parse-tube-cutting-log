@@ -15,7 +15,7 @@ def getTimeStamp() -> str:
     return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
 
-def saveWorkbook(wb, dstPath=None): # {{{
+def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
     os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
 
     if dstPath and (os.getlogin() == "OT03" or config.DEV_MODE):
@@ -31,6 +31,8 @@ def saveWorkbook(wb, dstPath=None): # {{{
         try:
             wb.save(str(dstPath))
             print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
+            if openAfterSaveChk:
+                os.startfile(dstPath)
         except Exception as e:
             print(e)
             fallbackExcelPath = Path(
@@ -41,6 +43,8 @@ def saveWorkbook(wb, dstPath=None): # {{{
             )
             wb.save(str(fallbackExcelPath))
             print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
+            if openAfterSaveChk:
+                os.startfile(fallbackExcelPath)
     else:
         fallbackExcelPath = Path(
             config.LOCAL_EXPORT_DIR,
@@ -50,6 +54,8 @@ def saveWorkbook(wb, dstPath=None): # {{{
         )
         wb.save(str(fallbackExcelPath))
         print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
+        if openAfterSaveChk:
+            os.startfile(fallbackExcelPath)
 
     print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
 
