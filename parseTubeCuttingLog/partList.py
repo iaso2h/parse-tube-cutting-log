@@ -7,7 +7,6 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 
-wb = Workbook()
 print = console.print
 
 
@@ -26,6 +25,7 @@ def invalidNamingParts():
 
 def exportDimensions():
     laserFilePaths = util.getAllLaserFiles()
+    wb = Workbook()
     ws = wb.create_sheet("Sheet1", 0)
     ws["A1"].value = "零件名称"
     ws["B1"].value = "规格"
