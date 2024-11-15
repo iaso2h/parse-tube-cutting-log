@@ -11,10 +11,11 @@ from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from pathlib import Path
 
 
-if config.CUT_RECORD_PATH.exists():
-    wb = load_workbook(str(config.CUT_RECORD_PATH))
-else:
-    wb = Workbook()
+def getWorkbook():
+    if config.CUT_RECORD_PATH.exists():
+        return load_workbook(str(config.CUT_RECORD_PATH))
+    else:
+        return Workbook()
 
 print = console.print
 
@@ -85,6 +86,7 @@ def takeScreenshot(): # {{{
     screenshot.save(screenshotPath)
 
     # Using OCR to get process count
+    wb = getWorkbook()
     sheetName = screenshotPath.stem[5:12]
     try:
         ws = wb[sheetName]
@@ -214,7 +216,7 @@ def newRecord(ws, p, partFileName=None, timeStamp=None):
 
 
 def updateScreenshotRecords(): # {{{
-
+    wb = getWorkbook()
     initSheetFromScreenshots(wb)
     for p in screenshotPaths:
         sheetName = p.stem[5:12]
@@ -259,6 +261,7 @@ def updateScreenshotRecords(): # {{{
 
 def relinkScreenshots():
     # TODO: highlight invalid ones
+    wb = getWorkbook()
     for ws in wb.worksheets:
         if ws.max_row < 2:
             continue

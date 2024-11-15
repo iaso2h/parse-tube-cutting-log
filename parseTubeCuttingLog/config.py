@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-# Version: 0.0.49
-# Last Modified: 2024-11-12
+# Version: 0.0.50
+# Last Modified: 2024-11-15
 
 import os
 from pathlib import Path

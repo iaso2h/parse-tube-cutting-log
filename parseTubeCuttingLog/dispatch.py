@@ -16,7 +16,6 @@ print = console.print
 # TODO: resolve when file path not found
 partColumnLetter = "E"
 partColumnNum = 5
-wb = load_workbook(str(config.DISPATCH_FILE_PATH))
 styleBorderThin = Side(border_style="thin", color="FF000000")
 with open(config.PRODUCT_ID_CATERGORY_CONVENTION_PATH, "r", encoding="utf-8") as pat:
     productIdCatergoryConvention = json.load(pat)
@@ -109,7 +108,7 @@ def unmergeCellWithin(ws, rangeAllMerged, rangeTargetTop: str, rangeTargetBot: s
                 pass
 
 def fillPartInfo(): # {{{
-
+    wb = load_workbook(str(config.DISPATCH_FILE_PATH))
     laserFilePaths = util.getAllLaserFiles()
     if not laserFilePaths:
         print(f"[red]No laser files found in: {str(config.LASER_FILE_DIR_PATH)}[/red]")
@@ -220,6 +219,7 @@ def fillPartInfo(): # {{{
 
 
 def beautifyCells(): # {{{
+    wb = load_workbook(str(config.DISPATCH_FILE_PATH))
     ws = wb.active
     rowMax = ws.max_row
     colMax = ws.max_column

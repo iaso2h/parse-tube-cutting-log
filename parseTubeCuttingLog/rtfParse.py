@@ -13,10 +13,11 @@ from striprtf.striprtf import rtf_to_text
 from openpyxl import Workbook, load_workbook
 
 
-if config.LASER_PORFILING_PATH.exists():
-    wb = load_workbook(str(config.LASER_PORFILING_PATH))
-else:
-    wb = Workbook()
+def getWorkbook():
+    if config.CUT_RECORD_PATH.exists():
+        return load_workbook(str(config.LASER_PORFILING_PATH))
+    else:
+        return Workbook()
 # programPath = Path(__file__).resolve()
 # programDir = programPath.parent
 excelCreatedChk = False
@@ -156,6 +157,7 @@ def writeRtf(laserFilePath, rtfAll, lineSplitedConcatenated): # {{{
 
 
 def writeExcel(laserFilePath, laserCutKeywordsPreviousCount, partLoopYield): # {{{
+    wb = getWorkbook()
     # Generate excel file for analysis
 
     # Write info in gross sheet
@@ -339,6 +341,7 @@ def parseStart(): # {{{
 
 
 def saveWorkbook(): # {{{
+    wb = getWorkbook()
     try:
         wb.save(str(config.LASER_PORFILING_PATH))
         print(f"\n[{util.getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{config.LASER_PORFILING_PATH}")
