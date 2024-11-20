@@ -275,6 +275,7 @@ def relinkScreenshots():
                     screenshotPath = Path(screenshotPaths[len(screenshotPaths) - 1])
                 else:
                     screenshotPath = Path(str(cell.value))
+
                 if screenshotPath.exists() and screenshotPath.suffix == ".png":
                     ws[f"G{cell.row}"].hyperlink = cell.value
 

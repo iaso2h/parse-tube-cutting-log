@@ -3,6 +3,7 @@ import console
 import util
 
 import re
+import datetime
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
@@ -28,12 +29,15 @@ def exportDimensions():
     laserFilePaths = util.getAllLaserFiles()
     wb = Workbook()
     ws = wb.create_sheet("Sheet1", 0)
-    ws["A1"].value = "零件名称"
-    ws["B1"].value = "规格"
-    ws["C1"].value = "材料"
-    ws["D1"].value = "第二规格指标"
-    ws["E1"].value = "第二规格指标数值"
-    ws["F1"].value = "长度"
+    ws["A1"] = "更新时间"
+    ws["B1"] = str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
+    ws.merge_cells("B1:F1")
+    ws["A2"].value = "零件名称"
+    ws["B2"].value = "规格"
+    ws["C2"].value = "材料"
+    ws["D2"].value = "第二规格指标"
+    ws["E2"].value = "第二规格指标数值"
+    ws["F2"].value = "长度"
     partFullNames = []
     for _, p in enumerate(laserFilePaths):
         fileNameMatch = re.match(
@@ -48,7 +52,7 @@ def exportDimensions():
         partName           = fileNameMatch.group(3)
         partComponentName  = fileNameMatch.group(4) # Optional
         partMaterial       = fileNameMatch.group(5)
-        partDimension                  = fileNameMatch.group(6)
+        partDimension               = fileNameMatch.group(6)
         part2ndDimensionInccator    = fileNameMatch.group(7) # Optional
         part2ndDimensionInccatorNum = fileNameMatch.group(9) # Optional
         partLength    = fileNameMatch.group(10)
@@ -58,7 +62,7 @@ def exportDimensions():
         partDimension = partDimension.replace("Ø", "D")
         partDimension = partDimension.replace("Φ", "D")
         partDimension = partDimension.strip()
-        partFullName = "{} {}\n({}/{})".format(productId, partName, partMaterial, partDimension)
+        partFullName = "{} {}\t{}/{}".format(productId, partName, partMaterial, partDimension)
         if partFullName in partFullNames:
             continue
         else:
@@ -83,7 +87,7 @@ def exportDimensions():
 
 
     # Add table
-    tab = Table(displayName="Table1", ref=f"A1:F{ws.max_row}")
+    tab = Table(displayName="Table1", ref=f"A2:F{ws.max_row}")
 
     # Add a default style with striped rows and banded columns
     style = TableStyleInfo(
