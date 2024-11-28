@@ -33,7 +33,9 @@ if __name__ == "__main__":
     args = argParser.parse_args()
     config.DEV_MODE = args.dev
     if args.legacy:
+        config.GUI_MODE = False
         cli.cliStart()
         input("Press enter to proceed...")
     else:
+        config.GUI_MODE = True
         import gui
