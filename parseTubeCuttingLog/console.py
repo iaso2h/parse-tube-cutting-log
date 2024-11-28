@@ -12,6 +12,6 @@ def print(*args, **kwargs):
     else:
         import dearpygui.dearpygui as dpg
         global logFlow
-        logFlow = "\n".join(args) + "\n"
+        logFlow = logFlow + "\n".join(args) + "\n"
         dpg.set_value("log", value=logFlow)
 
