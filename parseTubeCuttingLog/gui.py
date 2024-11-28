@@ -49,14 +49,14 @@ with dpg.window(
         label="TubePro辅助 v" + config.VERSION,
         autosize=False,
         no_resize=True,
-        width=290,
+        width=geo["width"],
         no_close=True,
         no_title_bar=False,
         no_move=True,
         no_collapse=True,
     ):
     with dpg.group(horizontal=True, horizontal_spacing=60):
-        dpg.add_text(f"编程: {config.AUTHOR}")
+        dpg.add_text(f"编程: 阮焕")
         dpg.add_text(f"最后更新: {config.LASTUPDATED}")
     dpg.add_separator(label="开料")
     with dpg.group(horizontal=True):
@@ -78,10 +78,11 @@ with dpg.window(
             default_value=console.logFlow,
             tab_input=True,
             tracked=False,
-            width=260,
+            width=geo["width"] - 30,
             height=155,
             readonly=True,
             tag="log",
+            no_horizontal_scroll=False,
             )
     dpg.add_button(label="退出", callback=dpg.destroy_context)
 
