@@ -34,15 +34,15 @@ def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
             if openAfterSaveChk:
                 os.startfile(dstPath)
         except Exception as e:
-            print(e)
+            print(str(e))
             fallbackExcelPath = Path(
                 config.LOCAL_EXPORT_DIR,
-                str(
+                dstPath.stem + "_fallback_" + str(
                     datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f")
                     ) + ".xlsx"
             )
             wb.save(str(fallbackExcelPath))
-            print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
+            print(f"\n[{getTimeStamp()}]:[bold green]Saving fallback Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
             if openAfterSaveChk:
                 os.startfile(fallbackExcelPath)
     else:
