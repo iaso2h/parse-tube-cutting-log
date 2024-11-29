@@ -9,7 +9,7 @@ PyInstaller.__main__.run([
     "__main__.py",
     "--onefile",
     "--noconfirm",
-    "--console",
+    "--noconsole",
     "--clean",
     "--name=ParseTubeProLog",
     "--hidden-import=openpyxl.cell._writer",

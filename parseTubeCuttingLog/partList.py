@@ -34,8 +34,7 @@ def exportDimensions():
     laserFilePaths = util.getAllLaserFiles()
     wb = Workbook()
     ws = wb.create_sheet("Sheet1", 0)
-    ws["A1"] = "更新时间"
-    ws["B1"] = str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
+    ws["A1"] = "更新时间:" + str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
     ws.merge_cells("B1:F1")
     ws["A2"].value = "零件名称"
     ws["B2"].value = "规格"
