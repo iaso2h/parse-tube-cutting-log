@@ -3,7 +3,9 @@ import console
 import util
 
 import re
+import os
 import datetime
+import win32api, win32con
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
@@ -28,6 +30,37 @@ def invalidNamingParts():
                 print(f'------------------------\n({_}): "{p.stem}"')
     if not invalidFilePathFoundChk:
         print("没有不规范的工件名称")
+
+def removeRedundantLaserFile():
+    zxLaserFile = []
+
+    if not config.LASER_FILE_DIR_PATH.exists():
+        return
+
+    for p in config.LASER_FILE_DIR_PATH.iterdir():
+        if p.is_file() and "demo" not in p.stem.lower() and p.suffix == ".zx":
+            zxLaserFile.append(p)
+
+    pDeletedStr = []
+    for p in zxLaserFile:
+        if Path(p.parent, p.stem + ".zzx").exists():
+            pDeletedStr.append(str(p))
+            os.remove(p)
+
+    if len(pDeletedStr) > 0:
+        print(f"{len(pDeletedStr)} redundant .zx files has been deleted:")
+        for pStr in pDeletedStr:
+            print(pStr)
+        win32api.MessageBox(
+                None,
+                f"{len(pDeletedStr)}个冗余.zx文件已经被删除",
+                "Info",
+                win32con.MB_OK
+                )
+    else:
+        print("No redundant .zx files")
+
+
 
 
 def exportDimensions():

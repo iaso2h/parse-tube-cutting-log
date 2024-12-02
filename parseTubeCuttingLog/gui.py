@@ -15,12 +15,6 @@ def unmergeAllCellSave():
     dispatch.unmergeAllCell(dispatch.wb.active)
     util.saveWorkbook(dispatch.wb, config.DISPATCH_FILE_PATH)
 
-dpg.create_context()
-reg = dpg.add_font_registry()
-fontName = dpg.add_font(file=r"C:\Windows\Fonts\msyh.ttc", size=17, parent=reg)
-dpg.add_font_range(0x0001, 0x9FFF, parent=fontName)
-dpg.bind_font(fontName)
-
 if win32api.GetSystemMetrics(0) < win32api.GetSystemMetrics(1) and config.GUI_GEOMETRY_PATH.exists():
     with open(config.GUI_GEOMETRY_PATH, "r", encoding="utf-8") as f:
         geo = json.load(f)
@@ -30,7 +24,13 @@ else:
             "y_pos": 600,
             "width": 290,
             "height": 192,
+            "fontSize": 16
     }
+dpg.create_context()
+reg = dpg.add_font_registry()
+fontName = dpg.add_font(file=r"C:\Windows\Fonts\msyh.ttc", size=geo["fontSize"], parent=reg)
+dpg.add_font_range(0x0001, 0x9FFF, parent=fontName)
+dpg.bind_font(fontName)
 
 dpg.create_viewport(
         title="TubePro Aid",
@@ -55,8 +55,11 @@ with dpg.window(
         no_move=True,
         no_collapse=True,
     ):
+    loginName = os.getlogin()
     with dpg.group(horizontal=True, horizontal_spacing=60):
         dpg.add_text(f"编程: 阮焕")
+        with dpg.tooltip(dpg.last_item()):
+            dpg.add_text(f"OS User Name: {loginName}\nDev Mode: {config.DEV_MODE}\nSilent Mode: {config.SILENT_MODE}")
         dpg.add_text(f"最后更新: {config.LASTUPDATED}")
     dpg.add_separator(label="开料")
     with dpg.group(horizontal=True):
@@ -65,9 +68,10 @@ with dpg.window(
         dpg.add_button(label="重新链接截图", callback=cutRecord.relinkScreenshots)
     dpg.add_separator(label="排样文件")
     with dpg.group(horizontal=True):
-        dpg.add_button(label="名称检查",     callback=partList.invalidNamingParts)
+        dpg.add_button(label="命名检查",     callback=partList.invalidNamingParts)
         dpg.add_button(label="工件规格总览", callback=partList.exportDimensions)
-    if os.getlogin() == "OT03":
+        dpg.add_button(label="删除冗余排样", callback=partList.removeRedundantLaserFile)
+    if loginName == "OT03":
         dpg.add_separator(label="派工单")
         with dpg.group(horizontal=True):
             dpg.add_button(label="填写工件", callback=dispatch.fillPartInfo)
@@ -84,7 +88,13 @@ with dpg.window(
             tag="log",
             no_horizontal_scroll=False,
             )
-    dpg.add_button(label="退出", callback=dpg.destroy_context)
+    def clearLog():
+        console.logFlow = ""
+        dpg.set_value("log", value=console.logFlow)
+
+    with dpg.group(horizontal=True, horizontal_spacing=60):
+        dpg.add_button(label="退出", callback=dpg.destroy_context)
+        dpg.add_button(label="清除日志", callback=clearLog)
 
 
 dpg.show_viewport()
