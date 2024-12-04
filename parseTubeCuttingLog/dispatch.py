@@ -153,9 +153,10 @@ def fillPartInfo(): # {{{
         partLength    = fileNameMatch.group(10)
         partDimension = partDimension.replace("_", "*")
         partDimension = partDimension.replace("x", "*")
-        partDimension = partDimension.replace("∅", "D")
-        partDimension = partDimension.replace("Ø", "D")
-        partDimension = partDimension.replace("Φ", "D")
+        # partDimension = partDimension.replace("∅", "∅")
+        partDimension = partDimension.replace("Ø", "∅")
+        partDimension = partDimension.replace("Φ", "∅")
+        partDimension = partDimension.replace("φ", "∅")
         partDimension = partDimension.strip()
         partFullName = "{} {}\n({}/{})".format(productId, partName, partMaterial, partDimension)
         otherPart = fileNameMatch.group(12)          # Optional

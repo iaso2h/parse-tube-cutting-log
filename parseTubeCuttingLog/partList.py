@@ -38,6 +38,7 @@ def removeRedundantLaserFile():
         return
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
+        p = util.strStandarize(p)
         if p.is_file() and "demo" not in p.stem.lower() and (p.suffix == ".zx" or p.suffix == ""):
             rawLaserFile.append(p)
 
@@ -105,9 +106,10 @@ def exportDimensions():
             partLength    = fileNameMatch.group(10)
             partDimension = partDimension.replace("_", "*")
             partDimension = partDimension.replace("x", "*")
-            partDimension = partDimension.replace("∅", "D")
-            partDimension = partDimension.replace("Ø", "D")
-            partDimension = partDimension.replace("Φ", "D")
+            # partDimension = partDimension.replace("∅", "∅")
+            partDimension = partDimension.replace("Ø", "∅")
+            partDimension = partDimension.replace("Φ", "∅")
+            partDimension = partDimension.replace("φ", "∅")
             partDimension = partDimension.strip()
             partFullName = "{} {}\n{}/{}".format(productId, partName, partMaterial, partDimension)
             if partFullName in partFullNames:

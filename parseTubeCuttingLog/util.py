@@ -1,3 +1,4 @@
+from os.path import isfile
 import config
 import console
 import os
@@ -5,6 +6,7 @@ import os
 import shutil
 import datetime
 import win32api, win32con
+import re
 from pathlib import Path
 
 
@@ -62,6 +64,24 @@ def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
 
 
 
+def strStandarize(old: Path):
+    if old.is_file():
+        new = str(old)
+        # old = old.replace("∅", "∅")
+        new = new.replace("Ø", "∅")
+        new = new.replace("Φ", "∅")
+        new = new.replace("φ", "∅")
+        new = re.sub(r"\s{2,}", " ", new)
+        try:
+            os.rename(old, new)
+            return Path(new)
+        except PermissionError as e:
+            print(str(e))
+            return old
+    else:
+        return old
+
+
 def getAllLaserFiles(): # {{{
     laserFilePaths = []
 
@@ -69,6 +89,7 @@ def getAllLaserFiles(): # {{{
         return
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
+        p = strStandarize(p)
         if p.is_file() and "demo" not in p.stem.lower() and (p.suffix == ".zx" or p.suffix == ".zzx" or p.suffix == ""):
             laserFilePaths.append(p)
 
