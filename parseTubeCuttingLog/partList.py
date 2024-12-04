@@ -32,18 +32,19 @@ def invalidNamingParts():
         print("没有不规范的工件名称")
 
 def removeRedundantLaserFile():
-    zxLaserFile = []
+    rawLaserFile = []
 
     if not config.LASER_FILE_DIR_PATH.exists():
         return
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
-        if p.is_file() and "demo" not in p.stem.lower() and p.suffix == ".zx":
-            zxLaserFile.append(p)
+        if p.is_file() and "demo" not in p.stem.lower() and (p.suffix == ".zx" or p.suffix == ""):
+            rawLaserFile.append(p)
 
     pDeletedStr = []
-    for p in zxLaserFile:
-        if Path(p.parent, p.stem + ".zzx").exists():
+    for p in rawLaserFile:
+        laserFile = Path(p.parent, p.stem + ".zzx")
+        if laserFile.exists() and os.path.getmtime(laserFile) > os.path.getmtime(p):
             pDeletedStr.append(str(p))
             os.remove(p)
 
@@ -53,7 +54,7 @@ def removeRedundantLaserFile():
             print(pStr)
         win32api.MessageBox(
                 None,
-                f"{len(pDeletedStr)}个冗余.zx文件已经被删除",
+                f"{len(pDeletedStr)}个冗余文件已经被删除",
                 "Info",
                 win32con.MB_OK
                 )
