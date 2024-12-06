@@ -11,10 +11,12 @@ def print(*args, **kwargs):
             console.print(*args, **kwargs)
     else:
         import dearpygui.dearpygui as dpg
+        import re
         global logFlow
         if logFlow == "":
             logFlow = "\n".join(args) + "\n"
         else:
             logFlow = logFlow + "\n".join(args) + "\n"
+        logFlow = re.sub(r"\[[_/ a-zA-z]+?\]", "", logFlow)
         dpg.set_value("log", value=logFlow)
 
