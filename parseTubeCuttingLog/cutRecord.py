@@ -20,8 +20,9 @@ def getWorkbook():
 print = console.print
 
 screenshotPaths = []
-sheetNames = []
 def initSheetFromScreenshots(wb): # {{{
+    yearMonthPrefix = []
+    sheetNames = wb.sheetnames
     for p in config.SCREENSHOT_DIR_PATH.iterdir():
         if p.suffix == ".png":
             with Image.open(p) as img:
@@ -31,21 +32,18 @@ def initSheetFromScreenshots(wb): # {{{
 
             screenshotPaths.append(p)
             dateStamp = p.stem[5:12]
-            if dateStamp not in sheetNames:
-                sheetNames.append(dateStamp)
+            if dateStamp not in yearMonthPrefix:
+                yearMonthPrefix.append(dateStamp)
 
-    for n in sheetNames:
-        try:
-            ws = wb[n]
-        except Exception:
+    for n in yearMonthPrefix:
+        if n not in sheetNames:
             ws = wb.create_sheet(n, 0)
             ws["A1"].value = "排样文件"
-            ws["B1"].value = "长料长度"
-            ws["C1"].value = "完成时间"
-            ws["D1"].value = "单号"
-            ws["E1"].value = "型号(数量)"
-            ws["F1"].value = "已切量/需求量"
-            ws["G1"].value = "截图文件" # }}}
+            ws["B1"].value = "完成时间"
+            ws["C1"].value = "单号"
+            ws["D1"].value = "型号(数量)"
+            ws["E1"].value = "已切量/需求量"
+            ws["F1"].value = "截图文件" # }}}
 
 
 def takeScreenshot(): # {{{
@@ -93,12 +91,11 @@ def takeScreenshot(): # {{{
     except Exception:
         ws = wb.create_sheet(sheetName, 0)
         ws["A1"].value = "排样文件"
-        ws["B1"].value = "长料长度"
-        ws["C1"].value = "完成时间"
-        ws["D1"].value = "单号"
-        ws["E1"].value = "型号(数量)"
-        ws["F1"].value = "已切量/需求量"
-        ws["G1"].value = "截图文件"
+        ws["B1"].value = "完成时间"
+        ws["C1"].value = "单号"
+        ws["D1"].value = "型号(数量)"
+        ws["E1"].value = "已切量/需求量"
+        ws["F1"].value = "截图文件"
 
     newRecord(ws, screenshotPath, partFileName, timeStamp)
     util.saveWorkbook(wb, config.CUT_RECORD_PATH) # }}}
@@ -202,17 +199,13 @@ def newRecord(ws, p, partFileName=None, timeStamp=None):
                     partProcessCount = processCountRead[1][1]
                     partProcessCount = ILLEGAL_CHARACTERS_RE.sub("", partProcessCount)
 
-    longTubeLengthMatch = re.search(r"(?<=L)\d{4}(?=.{0,3}\.zz?x$)", partFileName, flags=re.IGNORECASE)
-
     rowNew = ws.max_row + 1
     ws[f"A{rowNew}"].value = partFileName
-    if longTubeLengthMatch:
-        ws[f"B{rowNew}"].value = int(longTubeLengthMatch.group())
-    ws[f"C{rowNew}"].value = timeStamp
-    ws[f"C{rowNew}"].number_format = "yyyy/m/d h:mm:ss"
-    ws[f"F{rowNew}"].value = str(partProcessCount)
-    ws[f"F{rowNew}"].number_format = "@"
-    ws[f"G{rowNew}"].hyperlink = str(p)
+    ws[f"B{rowNew}"].value = timeStamp
+    ws[f"B{rowNew}"].number_format = "yyyy/m/d h:mm:ss"
+    ws[f"E{rowNew}"].value = str(partProcessCount)
+    ws[f"E{rowNew}"].number_format = "@"
+    ws[f"F{rowNew}"].hyperlink = str(p)
 
 
 def updateScreenshotRecords(): # {{{
@@ -227,7 +220,7 @@ def updateScreenshotRecords(): # {{{
         if rowMax != 1:
             # Get the valid last datetime
             while rowMax > 1:
-                lastScreenshotCell = ws[f"G{rowMax}"]
+                lastScreenshotCell = ws[f"F{rowMax}"]
                 if not validScreenshotPath(lastScreenshotCell):
                     rowMax = rowMax - 1
                     continue
@@ -265,7 +258,7 @@ def relinkScreenshots():
     for ws in wb.worksheets:
         if ws.max_row < 2:
             continue
-        for row in ws.iter_rows(min_row=2, max_col=7, max_row=ws.max_row):
+        for row in ws.iter_rows(min_row=2, max_col=6, max_row=ws.max_row):
             for cell in row:
                 if not validScreenshotPath(cell):
                     continue
@@ -277,6 +270,6 @@ def relinkScreenshots():
                     screenshotPath = Path(str(cell.value))
 
                 if screenshotPath.exists() and screenshotPath.suffix == ".png":
-                    ws[f"G{cell.row}"].hyperlink = cell.value
+                    ws[f"F{cell.row}"].hyperlink = cell.value
 
     util.saveWorkbook(wb, config.CUT_RECORD_PATH)

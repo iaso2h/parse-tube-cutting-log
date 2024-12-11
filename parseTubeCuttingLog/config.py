@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-VERSION     = "0.0.62"
-LASTUPDATED = "2024-12-06"
+VERSION     = "0.0.63"
+LASTUPDATED = "2024-12-11"
 
 import os
 from pathlib import Path

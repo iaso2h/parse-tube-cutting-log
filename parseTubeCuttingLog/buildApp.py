@@ -11,6 +11,7 @@ PyInstaller.__main__.run([
     "--noconfirm",
     "--noconsole",
     "--clean",
+    "--distpath=" + str(Path(config.PARENT_DIR_PATH, "辅助程序")),
     "--name=ParseTubeProLog",
     "--hidden-import=openpyxl.cell._writer",
     "--icon=./src/sticky-note.ico",

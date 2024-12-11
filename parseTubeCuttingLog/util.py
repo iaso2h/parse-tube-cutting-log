@@ -60,8 +60,6 @@ def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
         if openAfterSaveChk:
             os.startfile(newExcelPath)
 
-    print(f"[{getTimeStamp()}]:[bold white]Done[/bold white]") # }}}
-
 
 
 def strStandarize(old: Path):
