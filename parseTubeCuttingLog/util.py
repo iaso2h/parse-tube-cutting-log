@@ -88,7 +88,7 @@ def getAllLaserFiles(): # {{{
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
         p = strStandarize(p)
-        if p.is_file() and "demo" not in p.stem.lower() and (p.suffix == ".zx" or p.suffix == ".zzx" or p.suffix == ""):
+        if p.is_file() and "demo" not in p.stem.lower():
             laserFilePaths.append(p)
 
     return laserFilePaths # }}}

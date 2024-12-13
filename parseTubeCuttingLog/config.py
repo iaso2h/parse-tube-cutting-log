@@ -1,7 +1,7 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-VERSION     = "0.0.63"
+VERSION     = "0.0.64"
 LASTUPDATED = "2024-12-11"
 
 import os
@@ -12,7 +12,7 @@ SILENT_MODE = False
 DEV_MODE    = False
 PROGRAM_DIR = Path(os.getcwd())
 LOCAL_EXPORT_DIR = Path(PROGRAM_DIR, "export")
-RE_LASER_FILES_MATCH = r"^(\d{3}[-a-zA-Z]{,3}(\(.+?\))?) (([^_]+? )?[^_]+?) ([^_]{,8})[_*x]([^\u4e00-\u9fff]+?(([RT])?([0-9.]+?))[_*x]L([.0-9]{2,5}))( \d+?支 \+ (.*?) \d+?支)?( L(\d{4}))?_X1$"
+RE_LASER_FILES_MATCH = r"^(\d{3}[-a-zA-Z]{,3}(\(.+?\))?) (([^_]+? )?[^_]+?) ([^_]{,8})[_*x]([^\u4e00-\u9fff]+?(([RT])?([0-9.]+?))[_*x]L([.0-9]{2,5}))( \d+?支 \+ (.*?) \d+?支)?( L(\d{4}))?"
 
 PARENT_DIR_PATH = Path(r"D:\欧拓图纸")
 

@@ -39,7 +39,7 @@ def removeRedundantLaserFile():
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
         p = util.strStandarize(p)
-        if p.is_file() and "demo" not in p.stem.lower() and (p.suffix == ".zx" or p.suffix == ""):
+        if p.is_file() and "demo" not in p.stem.lower():
             rawLaserFile.append(p)
 
     pDeletedStr = []
@@ -79,14 +79,24 @@ def exportDimensions():
     ws["F2"].value = "长度"
     partFullNames = []
     for _, p in enumerate(laserFilePaths):
-        fileNameMatch = re.match(
-                config.RE_LASER_FILES_MATCH,
-                str(p.stem)
-                )
+        if p.suffix == ".zx" or p.suffix == ".zzx":
+            fileNameMatch = re.match(
+                    config.RE_LASER_FILES_MATCH,
+                    str(p.stem)
+                    )
+        else:
+            fileNameMatch = re.match(
+                    config.RE_LASER_FILES_MATCH,
+                    str(p.name)
+                    )
+
         rowMax = ws.max_row + 1
 
         if not fileNameMatch:
-            partFullName = p.stem
+            if p.suffix == ".zx" or p.suffix == ".zzx":
+                partFullName = p.stem
+            else:
+                partFullName = p.name
             ws[f"A{rowMax}"].value = partFullName
             ws[f"A{rowMax}"].number_format = "@"
 
@@ -111,7 +121,7 @@ def exportDimensions():
             partDimension = partDimension.replace("Φ", "∅")
             partDimension = partDimension.replace("φ", "∅")
             partDimension = partDimension.strip()
-            partFullName = "{} {}\n{}/{}".format(productId, partName, partMaterial, partDimension)
+            partFullName = "{} {} {}/{}".format(productId, partName, partMaterial, partDimension)
             if partFullName in partFullNames:
                 continue
             else:
