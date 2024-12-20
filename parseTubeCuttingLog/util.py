@@ -70,12 +70,22 @@ def strStandarize(old: Path):
         new = new.replace("Φ", "∅")
         new = new.replace("φ", "∅")
         new = re.sub(r"\s{2,}", " ", new)
+        newPath = Path(new)
+        
+        if str(old) != str(newPath) and newPath.exists(): 
+            if old.stat().st_mtime > newPath.stat().st_mtime:
+                os.remove(newPath)
+            else:
+                os.remove(old)
+                return old
+
         try:
             os.rename(old, new)
             return Path(new)
         except PermissionError as e:
             print(str(e))
             return old
+            
     else:
         return old
 

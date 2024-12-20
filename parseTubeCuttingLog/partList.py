@@ -45,9 +45,12 @@ def removeRedundantLaserFile():
     pDeletedStr = []
     for p in rawLaserFile:
         laserFile = Path(p.parent, p.stem + ".zzx")
-        if laserFile.exists() and os.path.getmtime(laserFile) > os.path.getmtime(p):
-            pDeletedStr.append(str(p))
-            os.remove(p)
+        if laserFile.exists() and laserFile.stat().st_mtime > p.stat().st_mtime:
+            try:
+                os.remove(p)
+                pDeletedStr.append(str(p))
+            except:
+                pass
 
     if len(pDeletedStr) > 0:
         print(f"{len(pDeletedStr)} redundant .zx files has been deleted:")
