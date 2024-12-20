@@ -11,7 +11,7 @@ from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from pathlib import Path
 
 
-def getWorkbook():
+def getWorkbook() -> None:
     if config.CUT_RECORD_PATH.exists():
         return load_workbook(str(config.CUT_RECORD_PATH))
     else:
@@ -20,7 +20,7 @@ def getWorkbook():
 print = console.print
 
 screenshotPaths = []
-def initSheetFromScreenshots(wb): # {{{
+def initSheetFromScreenshots(wb: Workbook) -> None: # {{{
     yearMonthPrefix = []
     sheetNames = wb.sheetnames
     for p in config.SCREENSHOT_DIR_PATH.iterdir():
@@ -46,7 +46,7 @@ def initSheetFromScreenshots(wb): # {{{
             ws["F1"].value = "截图文件" # }}}
 
 
-def takeScreenshot(): # {{{
+def takeScreenshot() -> None: # {{{
     import win32gui
     import win32process
     import psutil
@@ -101,7 +101,7 @@ def takeScreenshot(): # {{{
     util.saveWorkbook(wb, config.CUT_RECORD_PATH) # }}}
 # }}}
 
-def getImgInfo(p:Path): # {{{
+def getImgInfo(p:Path) -> None: # {{{
     import easyocr
     import json
     reader = easyocr.Reader(["ch_sim", "en"])

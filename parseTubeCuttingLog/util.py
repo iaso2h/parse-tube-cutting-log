@@ -8,6 +8,8 @@ import datetime
 import win32api, win32con
 import re
 from pathlib import Path
+from openpyxl import Workbook
+from typing import List
 
 
 print = console.print
@@ -19,7 +21,7 @@ def getTimeStamp() -> str:
     # return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
 
-def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
+def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=False) -> None: # {{{
     os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
     timeStr = str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
 
@@ -62,7 +64,7 @@ def saveWorkbook(wb, dstPath=None, openAfterSaveChk=False): # {{{
 
 
 
-def strStandarize(old: Path):
+def strStandarize(old: Path) -> Path:
     if old.is_file():
         new = str(old)
         # old = old.replace("∅", "∅")
@@ -90,11 +92,11 @@ def strStandarize(old: Path):
         return old
 
 
-def getAllLaserFiles(): # {{{
+def getAllLaserFiles() -> List[Path]: # {{{
     laserFilePaths = []
 
     if not config.LASER_FILE_DIR_PATH.exists():
-        return
+        return laserFilePaths
 
     for p in config.LASER_FILE_DIR_PATH.iterdir():
         p = strStandarize(p)

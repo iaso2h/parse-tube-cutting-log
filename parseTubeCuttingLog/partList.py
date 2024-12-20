@@ -9,12 +9,21 @@ import win32api, win32con
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
+from typing impoer List
 
 
 print = console.print
 
 
-def invalidNamingParts():
+def removeDummyLaserFile(p: Path) -> None:
+    if p.suffix == "" and p.stat().st_size == 0:
+        try:
+            os.remove(p)
+        except:
+            pass
+
+
+def invalidNamingParts() -> None:
     laserFilePaths = util.getAllLaserFiles()
     if not laserFilePaths:
         print("All files match the naming convention!")
@@ -31,7 +40,7 @@ def invalidNamingParts():
     if not invalidFilePathFoundChk:
         print("没有不规范的工件名称")
 
-def removeRedundantLaserFile():
+def removeRedundantLaserFile() -> None:
     rawLaserFile = []
 
     if not config.LASER_FILE_DIR_PATH.exists():
@@ -104,6 +113,7 @@ def exportDimensions():
             ws[f"A{rowMax}"].number_format = "@"
 
             if partFullName in partFullNames:
+                removeDummyLaserFile(p)
                 continue
             else:
                 partFullNames.append(partFullName)
@@ -126,6 +136,7 @@ def exportDimensions():
             partDimension = partDimension.strip()
             partFullName = "{} {} {}/{}".format(productId, partName, partMaterial, partDimension)
             if partFullName in partFullNames:
+                removeDummyLaserFile(p)
                 continue
             else:
                 partFullNames.append(partFullName)
