@@ -9,7 +9,6 @@ import win32api, win32con
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
-from typing impoer List
 
 
 print = console.print
@@ -66,11 +65,16 @@ def removeRedundantLaserFile() -> None:
         for pStr in pDeletedStr:
             print(pStr)
         win32api.MessageBox(
-                None,
-                f"{len(pDeletedStr)}个冗余文件已经被删除",
-                "Info",
-                win32con.MB_OK
+                    None,
+                    f"{len(pDeletedStr)}个冗余文件已经被删除",
+                    "Info",
+                    4096 + 64 + 0
                 )
+                #   MB_SYSTEMMODAL==4096
+                ##  Button Styles:
+                ### 0:OK  --  1:OK|Cancel -- 2:Abort|Retry|Ignore -- 3:Yes|No|Cancel -- 4:Yes|No -- 5:Retry|No -- 6:Cancel|Try Again|Continue
+                ##  To also change icon, add these values to previous number
+                ### 16 Stop-sign  ### 32 Question-mark  ### 48 Exclamation-point  ### 64 Information-sign ('i' in a circle)
     else:
         print("No redundant .zx files")
 

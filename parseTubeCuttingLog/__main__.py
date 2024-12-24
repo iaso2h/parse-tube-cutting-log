@@ -37,4 +37,4 @@ if __name__ == "__main__":
         input("Press enter to proceed...")
     else:
         config.GUI_MODE = True
-        import gui
+        import hotkey

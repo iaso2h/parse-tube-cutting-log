@@ -39,12 +39,17 @@ def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=Fal
             if openAfterSaveChk:
                 os.startfile(dstPath)
         except PermissionError:
-            if win32con.IDYES == win32api.MessageBox(
+            if win32con.IDRETRY == win32api.MessageBox(
                 None,
                 f"是否要重新写入该路径？\n\"{str(dstPath)}\"",
                 "写入权限不足",
-                win32con.MB_YESNO | win32con.MB_ICONQUESTION
+                4096 + 5 + 32
                 ):
+                #   MB_SYSTEMMODAL==4096
+                ##  Button Styles:
+                ### 0:OK  --  1:OK|Cancel -- 2:Abort|Retry|Ignore -- 3:Yes|No|Cancel -- 4:Yes|No -- 5:Retry|No -- 6:Cancel|Try Again|Continue
+                ##  To also change icon, add these values to previous number
+                ### 16 Stop-sign  ### 32 Question-mark  ### 48 Exclamation-point  ### 64 Information-sign ('i' in a circle)
                 saveWorkbook(wb, dstPath, openAfterSaveChk)
             else:
                 fallbackExcelPath = Path(
