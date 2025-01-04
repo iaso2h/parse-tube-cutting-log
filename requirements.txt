@@ -14,4 +14,5 @@ psutil=5.9.0=py312h2bbff1b_0
 pyinstaller=6.9.0=py312h0416ee5_0
 python=3.12.3=h2628c8c_0_cpython
 pywin32=307=py312h275cf98_3
+pywinctl=0.4.01=pyh7428d3b_0
 striprtf=0.0.26=pypi_0

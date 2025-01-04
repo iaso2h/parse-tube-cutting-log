@@ -177,6 +177,6 @@ def exportDimensions():
 
     ws.add_table(tab)
 
-    util.saveWorkbook(wb, Path(config.PARENT_DIR_PATH, r"存档\零件下料规格总览.xlsx"), True)
+    util.saveWorkbook(wb, Path(config.PARENT_DIR_PATH, r"存档\零件规格总览.xlsx"), True)
 
 

@@ -13,24 +13,33 @@ print = console.print
 
 
 def hotkeyAlignTube():
-    pId = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())[1]
+    hwnd = win32gui.GetForegroundWindow()
+    pId = win32process.GetWindowThreadProcessId(hwnd)[1]
     pName = psutil.Process(pId).name()
     if pName == "TubePro.exe":
-        screenX = 123
-        screenY = 124
+        rect = win32gui.GetWindowRect(hwnd)
+        winX = rect[0]
+        winY = rect[1]
         img = ImageGrab.grab()
         imgRGB = img.convert("RGB")
-        startPixelPos    = [850, 1013]
+        startPixelPos    = [830, 1013]
         pausePixelPos    = [972, 1013]
         continuePixelPos = [850, 1077]
         stopPixelPos     = [972, 1077]
-        targetCompletedPixel = imgRGB.getpixel((15, 1810))
-        if targetCompletedPixel == (170, 170, 0) or targetCompletedPixel == (255, 155, 155):
-            startPixelPos[2]    = startPixelPos[2] + 60
-            pausePixelPos[2]    = pausePixelPos[2] + 60
-            continuePixelPos[2] = continuePixelPos[2] + 60
-            stopPixelPos[2]     = stopPixelPos[2] + 60
+        if win32api.GetSystemMetrics(0) < win32api.GetSystemMetrics(1):
+            targetCompletedPixel = imgRGB.getpixel((15, 1810))
+        else:
+            targetCompletedPixel = (255, 155, 155)
 
+        if targetCompletedPixel == (170, 170, 0) or targetCompletedPixel == (255, 155, 155):
+            deltaY = 60
+        else:
+            deltaY = 0
+
+        startPixelPos[1]    = startPixelPos[1]    + deltaY
+        pausePixelPos[1]    = pausePixelPos[1]    + deltaY
+        continuePixelPos[1] = continuePixelPos[1] + deltaY
+        stopPixelPos[1]     = stopPixelPos[1]     + deltaY
         startPixel    = imgRGB.getpixel(startPixelPos)
         pausePixel    = imgRGB.getpixel(pausePixelPos)
         continuePixel = imgRGB.getpixel(continuePixelPos)
@@ -41,20 +50,20 @@ def hotkeyAlignTube():
             continuePixel == (196, 196, 196) and \
             stopPixel == (228, 28, 28):
                 savedPosition = copy.copy(mouse.position)
-                mouse.position = (screenX + 386, screenY + 123)
+                mouse.position = (302, 96 + deltaY)
                 mouse.press(Button.left)
                 mouse.release(Button.left)
                 time.sleep(mouseInterval)
-                mouse.position = (screenX + 386, screenY + 199)
+                mouse.position = (302, 146 + deltaY)
                 mouse.press(Button.left)
                 mouse.release(Button.left)
                 time.sleep(mouseInterval)
-                mouse.position = (screenX + 576, screenY + 223)
+                mouse.position = (455, 173 + deltaY)
                 mouse.press(Button.left)
                 mouse.release(Button.left)
                 mouse.position = savedPosition
         else:
-            pass
+            print("激光机运行时无法进行此操作")
             # return win32api.MessageBox(
             #         None,
             #         "激光机运行时无法进行此操作",
@@ -68,8 +77,22 @@ def hotkeyAlignTube():
             # 16 Stop-sign  ### 32 Question-mark  ### 48 Exclamation-point  ### 64 Information-sign ('i' in a circle)
 
 
+def coordinateEcho():
+    return win32api.MessageBox(
+            None,
+            f"x: {mouse.position[0]}, y: {mouse.position[1]}",
+            "Info",
+            4096 + 0 + 64
+        )
+    # MB_SYSTEMMODAL==4096
+    # Button Styles:
+    # 0:OK  --  1:OK|Cancel -- 2:Abort|Retry|Ignore -- 3:Yes|No|Cancel -- 4:Yes|No -- 5:Retry|No -- 6:Cancel|Try Again|Continue
+    # To also change icon, add these values to previous number
+    # 16 Stop-sign  ### 32 Question-mark  ### 48 Exclamation-point  ### 64 Information-sign ('i' in a circle)
 
 with keyboard.GlobalHotKeys({
-        "<alt>+a": hotkeyAlignTube}) as h:
+        "<alt>+a":                hotkeyAlignTube,
+        "<ctrl>+<shift>+<alt>+p": coordinateEcho
+    }) as h:
     import gui
     h.join()
