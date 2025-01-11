@@ -1,8 +1,6 @@
-from os.path import isfile
 import config
 import console
 import os
-
 import shutil
 import datetime
 import win32api, win32con
@@ -26,6 +24,7 @@ def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=Fal
     timeStr = str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
 
     if dstPath and (os.getlogin() == "OT03" or config.DEV_MODE):
+        # Create backup first
         if dstPath.exists():
             backupPath = Path(
                 config.LOCAL_EXPORT_DIR,
@@ -78,8 +77,8 @@ def strStandarize(old: Path) -> Path:
         new = new.replace("φ", "∅")
         new = re.sub(r"\s{2,}", " ", new)
         newPath = Path(new)
-        
-        if str(old) != str(newPath) and newPath.exists(): 
+
+        if str(old) != str(newPath) and newPath.exists():
             if old.stat().st_mtime > newPath.stat().st_mtime:
                 os.remove(newPath)
             else:
@@ -92,7 +91,7 @@ def strStandarize(old: Path) -> Path:
         except PermissionError as e:
             print(str(e))
             return old
-            
+
     else:
         return old
 

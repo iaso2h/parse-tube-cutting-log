@@ -138,7 +138,7 @@ def exportDimensions():
             partDimension = partDimension.replace("Φ", "∅")
             partDimension = partDimension.replace("φ", "∅")
             partDimension = partDimension.strip()
-            partFullName = "{} {} {}/{}".format(productId, partName, partMaterial, partDimension)
+            partFullName = "{} {}".format(productId, partName)
             if partFullName in partFullNames:
                 removeDummyLaserFile(p)
                 continue
