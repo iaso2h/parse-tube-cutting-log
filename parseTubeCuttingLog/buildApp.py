@@ -12,7 +12,7 @@ PyInstaller.__main__.run([
     "--noconsole",
     "--clean",
     "--distpath=" + str(Path(config.PARENT_DIR_PATH, "辅助程序")),
-    "--name=ParseTubeProLog",
+    "--name=TubeProAid",
     "--hidden-import=openpyxl.cell._writer",
     "--icon=./src/sticky-note.ico",
 ])

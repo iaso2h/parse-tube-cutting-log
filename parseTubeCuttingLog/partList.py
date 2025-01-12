@@ -8,6 +8,7 @@ import datetime
 import win32api, win32con
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from openpyxl.comments import Comment
 from pathlib import Path
 
 
@@ -88,12 +89,19 @@ def exportDimensions():
     ws["A1"] = "更新时间:" + str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
     ws.merge_cells("B1:F1")
     ws["A2"].value = "零件名称"
-    ws["B2"].value = "规格"
-    ws["C2"].value = "材料"
-    ws["D2"].value = "第二规格指标"
-    ws["E2"].value = "第二规格指标数值"
-    ws["F2"].value = "长度"
+    ws["B2"].value = "外发别名"
+    ws["C2"].value = "规格"
+    ws["D2"].value = "材料"
+    ws["E2"].value = "第二规格指标"
+    ws["F2"].value = "第二规格指标数值"
+    ws["G2"].value = "长度"
     partFullNames = []
+    partNickNames = {
+            # <fullPartName>: ["<nickName>", "<comment>"]
+            "513L(移动式) 大开关管": ["515L 大开关管", "因为开厂以来第一款移动式是515L而不是513L，因此用在委外时用515L来泛指代表移动式助行器"],
+            "513L(移动式) 小开关管": ["515L 小开关管", "因为开厂以来第一款移动式是515L而不是513L，因此用在委外时用515L来泛指代表移动式助行器"],
+            "734L 底座 焊接组合": ["734L 四脚架", ""],
+            }
     for _, p in enumerate(laserFilePaths):
         if p.suffix == ".zx" or p.suffix == ".zzx":
             fileNameMatch = re.match(
@@ -115,6 +123,14 @@ def exportDimensions():
                 partFullName = p.name
             ws[f"A{rowMax}"].value = partFullName
             ws[f"A{rowMax}"].number_format = "@"
+            if partFullName in partNickNames:
+                ws[f"B{rowMax}"].value = partNickNames[partFullName][0]
+                ws[f"B{rowMax}"].number_format = "0"
+                if partNickNames[partFullName][1]:
+                    comment = Comment(partNickNames[partFullName][1], "阮焕")
+                    comment.width = 300
+                    comment.height = 150
+                    ws[f"B{rowMax}"].comment = comment
 
             if partFullName in partFullNames:
                 removeDummyLaserFile(p)
@@ -125,6 +141,9 @@ def exportDimensions():
             productId          = fileNameMatch.group(1)
             productIdNote      = fileNameMatch.group(2) # name
             partName           = fileNameMatch.group(3)
+            if partName and "飞切" in partName:
+                partName = re.sub(r"[有无]飞切", "", partName)
+                partName = partName.replace("()", "")
             partComponentName  = fileNameMatch.group(4) # Optional
             partMaterial       = fileNameMatch.group(5)
             partDimension               = fileNameMatch.group(6)
@@ -150,20 +169,29 @@ def exportDimensions():
 
             ws[f"A{rowMax}"].value = partFullName
             ws[f"A{rowMax}"].number_format = "@"
-            ws[f"B{rowMax}"].value = partDimension
-            ws[f"B{rowMax}"].number_format = "@"
-            ws[f"C{rowMax}"].value = partMaterial
+            if partFullName in partNickNames:
+                ws[f"B{rowMax}"].value = partNickNames[partFullName][0]
+                ws[f"B{rowMax}"].number_format = "0"
+                if partFullName[1]:
+                    comment = Comment(partNickNames[partFullName][1], "阮焕")
+                    comment.width = 300
+                    comment.height = 150
+                    ws[f"B{rowMax}"].comment = comment
+
+            ws[f"C{rowMax}"].value = partDimension
             ws[f"C{rowMax}"].number_format = "@"
-            ws[f"D{rowMax}"].value = part2ndDimensionInccator
+            ws[f"D{rowMax}"].value = partMaterial
             ws[f"D{rowMax}"].number_format = "@"
-            ws[f"E{rowMax}"].value = part2ndDimensionInccatorNum
-            ws[f"E{rowMax}"].number_format = "0"
-            ws[f"F{rowMax}"].value = partLength
+            ws[f"E{rowMax}"].value = part2ndDimensionInccator
+            ws[f"E{rowMax}"].number_format = "@"
+            ws[f"F{rowMax}"].value = part2ndDimensionInccatorNum
             ws[f"F{rowMax}"].number_format = "0"
+            ws[f"G{rowMax}"].value = partLength
+            ws[f"G{rowMax}"].number_format = "0"
 
 
     # Add table
-    tab = Table(displayName="Table1", ref=f"A2:F{ws.max_row}")
+    tab = Table(displayName="Table1", ref=f"A2:G{ws.max_row}")
 
     # Add a default style with striped rows and banded columns
     style = TableStyleInfo(
