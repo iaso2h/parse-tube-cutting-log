@@ -2,7 +2,7 @@
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
 VERSION     = "0.0.72"
-LASTUPDATED = "2025-01-04"
+LASTUPDATED = "2025-01-12"
 
 import os
 from pathlib import Path

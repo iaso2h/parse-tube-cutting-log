@@ -80,7 +80,7 @@ def takeScreenshot() -> None: # {{{
     datetimeNow = datetime.datetime.now()
     timeStamp = datetimeNow.strftime("%Y/%m/%d %H:%M:%S")
     screenshot = ImageGrab.grab()
-    screenshotPath = Path(config.SCREENSHOT_DIR_PATH, f"屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png")
+    screenshotPath = Path(config.SCREENSHOT_DIR_PATH, f'屏幕截图 {datetimeNow.strftime("%Y-%m-%d %H%M%S")}.png')
     screenshot.save(screenshotPath)
 
     # Using OCR to get process count
