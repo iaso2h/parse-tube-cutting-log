@@ -2,7 +2,7 @@ import console
 import config
 import cutRecord
 import dispatch
-import partList
+import workpiece
 import util
 
 import os
@@ -68,9 +68,9 @@ with dpg.window(
         dpg.add_button(label="重新链接截图", callback=cutRecord.relinkScreenshots)
     dpg.add_separator(label="排样文件")
     with dpg.group(horizontal=True):
-        dpg.add_button(label="命名检查",     callback=partList.invalidNamingParts)
-        dpg.add_button(label="工件规格总览", callback=partList.exportDimensions)
-        dpg.add_button(label="删除冗余排样", callback=partList.removeRedundantLaserFile)
+        dpg.add_button(label="命名检查",     callback=workpiece.workpieceNamingVerification)
+        dpg.add_button(label="工件规格总览", callback=workpiece.exportDimensions)
+        dpg.add_button(label="删除冗余排样", callback=workpiece.removeRedundantLaserFile)
     if loginName == "OT03":
         dpg.add_separator(label="派工单")
         with dpg.group(horizontal=True):
