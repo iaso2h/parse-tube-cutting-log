@@ -1,9 +1,11 @@
 import config
 import console
 import util
+import shutil
 
 import re
 import os
+import json
 import datetime
 import win32api, win32con
 from openpyxl import Workbook
@@ -90,6 +92,8 @@ def removeRedundantLaserFile() -> None:
 
 def exportDimensions():
     laserFilePaths = util.getAllLaserFiles()
+    with open(config.AREA_OVERRIDE, "r", encoding="utf-8") as f:
+        areaOverride = json.load(f)
     wb = Workbook()
     ws = wb.create_sheet("Sheet1", 0)
     ws["A1"] = "更新时间:" + str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
@@ -138,8 +142,14 @@ def exportDimensions():
             ws[f"A{rowMax}"].value = workpieceFullName
             ws[f"A{rowMax}"].number_format = "@"
             # namingly ws[f"A{rowMax}"].number_format = BUILTIN_FORMATS[49]
+            workpieceNickName = ""
+            if workpieceFullName.endswith(" 焊接组合"):
+                workpieceNickName = workpieceFullName.replace(" 焊接组合", "")
+                ws[f"B{rowMax}"].value = workpieceNickName
+                ws[f"B{rowMax}"].number_format = "@"
             if workpieceFullName in workpieceNickNames:
-                ws[f"B{rowMax}"].value = workpieceNickNames[workpieceFullName][0]
+                workpieceNickName = workpieceNickNames[workpieceFullName][0]
+                ws[f"B{rowMax}"].value = workpieceNickName
                 ws[f"B{rowMax}"].number_format = "@"
                 if workpieceNickNames[workpieceFullName][1]:
                     comment = Comment(workpieceNickNames[workpieceFullName][1], "阮焕")
@@ -153,6 +163,8 @@ def exportDimensions():
             else:
                 workpieceFullNames.append(workpieceFullName)
         else:
+            fileNameMatchTick = True
+
             productId          = fileNameMatch.group(1)
             productIdNote      = fileNameMatch.group(2) # name
             workpieceName           = fileNameMatch.group(3)
@@ -185,8 +197,10 @@ def exportDimensions():
             ws[f"A{rowMax}"].value = workpieceFullName
             ws[f"A{rowMax}"].number_format = "@"
             # namingly ws[f"A{rowMax}"].number_format = BUILTIN_FORMATS[49]
+            workpieceNickName = ""
             if workpieceFullName in workpieceNickNames:
-                ws[f"B{rowMax}"].value = workpieceNickNames[workpieceFullName][0]
+                workpieceNickName = workpieceNickNames[workpieceFullName][0]
+                ws[f"B{rowMax}"].value = workpieceNickName
                 ws[f"B{rowMax}"].number_format = "@"
                 if workpieceFullName[1]:
                     comment = Comment(workpieceNickNames[workpieceFullName][1], "阮焕")
@@ -206,8 +220,30 @@ def exportDimensions():
             ws[f"G{rowMax}"].value = workpieceLength
             ws[f"G{rowMax}"].number_format = BUILTIN_FORMATS[2]
 
+        # Calculate the surface area
+        if fileNameMatchTick and "∅" in workpieceDimension and "L" in workpieceDimension:
+            m = tubeDimensionPat.match(workpieceDimension)
+            if m:
+                dia    = float(m.group(1)[1:])
+                length = float(m.group(3)[1:])
+                surfaceAreaFormula = f"=3.14 * { dia } * G{rowMax} / 1000 / 1000"
+                surfaceAreaEval = 3.14 * dia * length / 1000 / 1000
+                ws[f"H{rowMax}"].value = surfaceAreaFormula
+                ws[f"H{rowMax}"].number_format = "0.0000"
+        # Use override area
+        if workpieceFullName in areaOverride or (workpieceNickName and workpieceNickName in areaOverride):
+            if workpieceNickName:
+                querryKey = workpieceNickName
+            else:
+                querryKey = workpieceFullName
 
+            if ws[f"H{rowMax}"].value:
+                print(f"Override area for {querryKey} with {areaOverride[querryKey]} instead of {surfaceAreaEval}")
+            else:
+                print(f"Override area for {querryKey} with {areaOverride[querryKey]}")
 
+            ws[f"H{rowMax}"].value = areaOverride[querryKey]
+            ws[f"H{rowMax}"].number_format = "0.0000"
 
 
 
