@@ -1,5 +1,6 @@
 import console
 import config
+import argparse
 config.updaPath()
 
 if not config.PARENT_DIR_PATH.exists():
@@ -18,7 +19,6 @@ if not config.PARENT_DIR_PATH.exists():
 
 
 import cli
-import argparse
 
 print = console.print
 

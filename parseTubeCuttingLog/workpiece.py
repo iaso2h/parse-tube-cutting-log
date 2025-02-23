@@ -12,9 +12,13 @@ from openpyxl.comments import Comment
 from pathlib import Path
 from openpyxl.styles.numbers import BUILTIN_FORMATS
 # https://openpyxl.readthedocs.io/en/3.1.3/_modules/openpyxl/styles/numbers.html
+from decimal import Decimal
 
 
 print = console.print
+
+def bankRound(precision: float, digitLiteral: str) -> float:
+    return float(Decimal(digitLiteral).quantize(Decimal(precision), rounding = "ROUND_HALF_UP"))
 
 
 def removeDummyLaserFile(p: Path) -> None:
@@ -33,7 +37,7 @@ def workpieceNamingVerification() -> None:
     for _, p in enumerate(laserFilePaths):
         if p.suffix == ".zx" or p.suffix == ".zzx":
             fileNameMatch = re.match(
-                    config.RE_LASER_FILES_MATCH,
+                    config.RE_LASER_FILES_PAT,
                     str(p.stem)
                     )
             if not fileNameMatch:
@@ -104,7 +108,7 @@ def exportDimensions():
     ws.column_dimensions["D"].width = 15.5
     ws["G2"].value = "长度"
     ws.column_dimensions["G"].width = 7.5
-    ws["H2"].value = "方数m²"
+    ws["H2"].value = "方数(m²)"
     ws.column_dimensions["H"].width = 9.5
     workpieceFullNames = []
     workpieceNickNames = {
@@ -114,8 +118,8 @@ def exportDimensions():
             "513L(移动式) 小开关管": ["515L 小开关管", "因为开厂以来第一款移动式是515L而不是513L，因此用在委外时用515L来泛指代表移动式助行器"],
             "734L 底座 焊接组合": ["734L 四脚架", ""],
             }
-    fileNamePat      = re.compile(config.RE_LASER_FILES_MATCH)
-    tubeDimensionPat = re.compile(r"(∅.*?)\*(T.*?)\*(L.*)")
+    fileNamePat      = re.compile(config.RE_LASER_FILES_PAT)
+    tubeDimensionPat = re.compile(config.TUBE_DIMENSION_PAT)
     for _, p in enumerate(laserFilePaths):
         if p.suffix == ".zx" or p.suffix == ".zzx":
             fileNameMatch = fileNamePat.match(str(p.stem))
@@ -123,6 +127,8 @@ def exportDimensions():
             fileNameMatch = fileNamePat.match(str(p.name))
 
         rowMax = ws.max_row + 1
+
+        fileNameMatchTick = False
 
         if not fileNameMatch:
             if p.suffix == ".zx" or p.suffix == ".zzx":
@@ -192,22 +198,13 @@ def exportDimensions():
             ws[f"C{rowMax}"].number_format = "@"
             ws[f"D{rowMax}"].value = workpieceMaterial
             ws[f"D{rowMax}"].number_format = "@"
-            ws[f"E{rowMax}"].value = workpiece2ndDimensionInccator
-            ws[f"E{rowMax}"].number_format = "@"
-            ws[f"F{rowMax}"].value = workpiece2ndDimensionInccatorNum
-            ws[f"F{rowMax}"].number_format = BUILTIN_FORMATS[2]
+            if not re.search(r"^\d", workpiece2ndDimensionInccator):
+                ws[f"E{rowMax}"].value = workpiece2ndDimensionInccator
+                ws[f"E{rowMax}"].number_format = "@"
+                ws[f"F{rowMax}"].value = workpiece2ndDimensionInccatorNum
+                ws[f"F{rowMax}"].number_format = BUILTIN_FORMATS[2]
             ws[f"G{rowMax}"].value = workpieceLength
             ws[f"G{rowMax}"].number_format = BUILTIN_FORMATS[2]
-            # Calculate the surface area
-            if "∅" in workpieceDimension and "T" in workpieceDimension and "L" in workpieceDimension:
-                m = tubeDimensionPat.match(workpieceDimension)
-                if m:
-                    dia       = float(m.group(1)[1:])
-                    length    = float(m.group(3)[1:])
-                    surfaceArea = 3.14 * dia * length / 1000 / 1000
-                    ws[f"H{rowMax}"].value = surfaceArea
-                    ws[f"H{rowMax}"].number_format = BUILTIN_FORMATS[2]
-
 
 
 
@@ -229,6 +226,11 @@ def exportDimensions():
 
     ws.add_table(tab)
 
-    util.saveWorkbook(wb, Path(config.PARENT_DIR_PATH, r"存档\零件规格总览.xlsx"), True)
+    savePath = util.saveWorkbook(wb, Path(config.PARENT_DIR_PATH, r"存档\零件规格总览.xlsx"), True)
+
+    if os.getlogin() == "OT03":
+        if config.WAREHOUSING_PATH.exists():
+            shutil.copy2(savePath, Path(config.WAREHOUSING_PATH, "零件规格总览.xlsx"))
+
 
 

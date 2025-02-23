@@ -2,7 +2,9 @@ import util
 import console
 import config
 
+import shutil
 import datetime
+import os
 import re
 import numpy
 from PIL import Image, ImageFilter, ImageGrab
@@ -98,7 +100,10 @@ def takeScreenshot() -> None: # {{{
         ws["F1"].value = "截图文件"
 
     newRecord(ws, screenshotPath, partFileName, timeStamp)
-    util.saveWorkbook(wb, config.CUT_RECORD_PATH) # }}}
+    savePath = util.saveWorkbook(wb, config.CUT_RECORD_PATH)
+
+    if os.getlogin() != "OT03":
+        shutil.copy2(savePath, Path(config.SCREENSHOT_DIR_PATH, "开料记录.xlsx"))
 # }}}
 
 def getImgInfo(p:Path) -> None: # {{{

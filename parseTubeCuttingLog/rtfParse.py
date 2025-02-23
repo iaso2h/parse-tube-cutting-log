@@ -46,7 +46,7 @@ def getPartLogList() -> list | list:
 
 
 def getProperSheetName(stem: str) -> str:
-    conciseFileNameMatch = re.search(config.RE_LASER_FILES_MATCH, stem, re.I)
+    conciseFileNameMatch = re.search(config.RE_LASER_FILES_PAT, stem, re.I)
     if conciseFileNameMatch:
         conciseFileName = conciseFileNameMatch.group(3).strip()
     else:

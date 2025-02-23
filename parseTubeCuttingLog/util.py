@@ -19,7 +19,7 @@ def getTimeStamp() -> str:
     # return str(now.strftime(f"%Y/{now.month}/%d %H:%M:%S"))
 
 
-def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=False) -> None: # {{{
+def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=False) -> Path: # {{{
     os.makedirs(config.LOCAL_EXPORT_DIR, exist_ok=True)
     timeStr = str(datetime.datetime.now().strftime("%Y-%m-%d %H%M%S%f"))
 
@@ -37,6 +37,7 @@ def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=Fal
             print(f"\n[{getTimeStamp()}]:[bold green]Saving Excel file at: [/bold green][bright_black]{dstPath}")
             if openAfterSaveChk:
                 os.startfile(dstPath)
+            return dstPath
         except PermissionError:
             if win32con.IDRETRY == win32api.MessageBox(
                 None,
@@ -49,13 +50,14 @@ def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=Fal
                 ### 0:OK  --  1:OK|Cancel -- 2:Abort|Retry|Ignore -- 3:Yes|No|Cancel -- 4:Yes|No -- 5:Retry|No -- 6:Cancel|Try Again|Continue
                 ##  To also change icon, add these values to previous number
                 ### 16 Stop-sign  ### 32 Question-mark  ### 48 Exclamation-point  ### 64 Information-sign ('i' in a circle)
-                saveWorkbook(wb, dstPath, openAfterSaveChk)
+                return saveWorkbook(wb, dstPath, openAfterSaveChk)
             else:
                 fallbackExcelPath = Path(
                     config.LOCAL_EXPORT_DIR,
                     dstPath.stem + "_fallback_" + timeStr + ".xlsx")
                 wb.save(str(fallbackExcelPath))
                 print(f"\n[{getTimeStamp()}]:[bold green]Saving fallback Excel file at: [/bold green][bright_black]{fallbackExcelPath}")
+                return fallbackExcelPath
 
     else:
         newExcelPath = Path(
@@ -65,6 +67,7 @@ def saveWorkbook(wb: Workbook, dstPath: Path | None = None, openAfterSaveChk=Fal
         print(f"\n[{getTimeStamp()}]:[bold green]Saving new Excel file at: [/bold green][bright_black]{newExcelPath}")
         if openAfterSaveChk:
             os.startfile(newExcelPath)
+        return newExcelPath
 
 
 
