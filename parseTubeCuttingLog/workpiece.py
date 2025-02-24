@@ -250,6 +250,14 @@ def exportDimensions():
     # Add table
     tab = Table(displayName="Table1", ref=f"A2:H{ws.max_row}")
 
+    # Add printable area
+    ws.oddFooter.center.text = "第 &[Page] 页，共 &N 页"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.orientation = ws.ORIENTATION_PORTRAIT
+    ws.print_title_rows = "2:2"
+    ws.print_area = f"A2:H{ws.max_row}"
+
+
     # Add a default style with striped rows and banded columns
     style = TableStyleInfo(
             name="TableStyleMedium16",

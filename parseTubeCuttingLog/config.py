@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-VERSION     = "0.0.78"
-LASTUPDATED = "2025-02-23"
+VERSION     = "0.0.79"
+LASTUPDATED = "2025-02-24"
 
 import os
 from pathlib import Path
@@ -51,4 +51,4 @@ def updaPath():
     LASER_OCR_FIX_PATH                   = Path(PARENT_DIR_PATH, r"辅助程序/激光名称OCR修复规则.json")
     PRODUCT_ID_CATERGORY_CONVENTION_PATH = Path(PARENT_DIR_PATH, r"辅助程序/型号类别对照规则.json")
     GUI_GEOMETRY_PATH = Path(PARENT_DIR_PATH, r"辅助程序/程序几何.json")
-    AREA_OVERRIDE = Path(r"F:/Code/Github/parse-tube-cutting-log/areaOverride.json")
+    AREA_OVERRIDE = Path(PARENT_DIR_PATH, r"辅助程序/areaOverride.json")
