@@ -1,8 +1,8 @@
 # File: parseTubeProLog
 # Author: iaso2h
 # Description: Parsing Log files(.rtf) from TubePro and split them into separated files
-VERSION     = "0.0.79"
-LASTUPDATED = "2025-02-24"
+VERSION     = "0.0.80"
+LASTUPDATED = "2025-02-26"
 
 import os
 from pathlib import Path
@@ -12,7 +12,7 @@ SILENT_MODE = False
 DEV_MODE    = False
 PROGRAM_DIR = Path(os.getcwd())
 LOCAL_EXPORT_DIR = Path(PROGRAM_DIR, "export")
-RE_LASER_FILES_PAT = r"^(\d{3}[-a-zA-Z]{,3}(\(.+?\))?) (([^_]+? )?[^_]+?) ([^_]{,8})[_*x]([^\u4e00-\u9fff]+?(([RT])?([0-9.]+?))[_*x]L([.0-9]{1,5}))( \d+?支 \+ (.*?) \d+?支)?( L(\d{4}))?(_X1)?"
+RE_LASER_FILES_PAT = r"^(\d{3}[-a-zA-Z]{,3}(\(.+?\))?) (([^_]+? )?[^_]+?) ([^_]{,8})([_*x])?([^\u4e00-\u9fff]+?(([RT])?([0-9.]+?))[_*x]L([.0-9]{1,5}))?( \d+?支 \+ (.*?) \d+?支)?( L(\d{4}))?(_X1)?"
 TUBE_DIMENSION_PAT = r"(∅[0-9.]*?)(\*T.*?)?\*(L.*)"
 
 
@@ -28,7 +28,7 @@ LASER_LOG_PATH       = ""
 LASER_OCR_FIX_PATH                   = ""
 PRODUCT_ID_CATERGORY_CONVENTION_PATH = ""
 GUI_GEOMETRY_PATH = ""
-AREA_OVERRIDE = ""
+WORKPIECE_DICT = ""
 
 def updaPath():
     global LASER_FILE_DIR_PATH
@@ -40,7 +40,7 @@ def updaPath():
     global LASER_OCR_FIX_PATH
     global PRODUCT_ID_CATERGORY_CONVENTION_PATH
     global GUI_GEOMETRY_PATH
-    global AREA_OVERRIDE
+    global WORKPIECE_DICT
 
     LASER_FILE_DIR_PATH  = Path(PARENT_DIR_PATH, r"切割文件")
     DISPATCH_FILE_PATH   = Path(PARENT_DIR_PATH, r"派工单（模板+空表）.xlsx")
@@ -51,4 +51,4 @@ def updaPath():
     LASER_OCR_FIX_PATH                   = Path(PARENT_DIR_PATH, r"辅助程序/激光名称OCR修复规则.json")
     PRODUCT_ID_CATERGORY_CONVENTION_PATH = Path(PARENT_DIR_PATH, r"辅助程序/型号类别对照规则.json")
     GUI_GEOMETRY_PATH = Path(PARENT_DIR_PATH, r"辅助程序/程序几何.json")
-    AREA_OVERRIDE = Path(PARENT_DIR_PATH, r"辅助程序/areaOverride.json")
+    WORKPIECE_DICT = Path(PARENT_DIR_PATH, r"辅助程序/workpieceDict.json")
