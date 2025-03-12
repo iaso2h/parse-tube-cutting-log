@@ -104,20 +104,19 @@ def exportDimensions():
     ws["B2"].value = "外发别名"
     ws.column_dimensions["B"].width = 14
     ws["C2"].value = "规格"
-    ws.column_dimensions["C"].width = 18
+    ws.column_dimensions["C"].width = 20
     ws["D2"].value = "材料"
-    ws.column_dimensions["D"].width = 8
-    ws["E2"].value = "第二规格"
-    ws.column_dimensions["D"].width = 12
-    ws["F2"].value = "第二规格数值"
-    ws.column_dimensions["D"].width = 15.5
+    ws.column_dimensions["D"].width = 9
+    ws["E2"].value = "参数一"
+    ws.column_dimensions["E"].width = 8
+    ws["F2"].value = "参数二"
+    ws.column_dimensions["F"].width = 8
     ws["G2"].value = "长度"
-    ws.column_dimensions["G"].width = 7.5
+    ws.column_dimensions["G"].width = 8
     ws["H2"].value = "方数(m²)"
     ws.column_dimensions["H"].width = 9.5
-    ws["H2"].value = "方数(m²)"
-    ws.column_dimensions["I"].width = 11.5
     ws["I2"].value = "焊接散件"
+    ws.column_dimensions["I"].width = 12
     workpieceFullNames = []
     workpieceNickNames = workpieceDict["nickname"]
     # <fullPartName>: ["<nickName>", "<comment>"]
@@ -185,9 +184,12 @@ def exportDimensions():
                 workpieceDimension = workpieceDimension.replace("φ", "∅")
                 workpieceDimension = workpieceDimension.strip()
 
-            workpiece2ndDimensionInccator    = fileNameMatch.group(8) # Optional
-            workpiece2ndDimensionInccatorNum = fileNameMatch.group(10) # Optional
-            workpieceLength = fileNameMatch.group(11)
+            workpiece1stParameter = fileNameMatch.group(8)
+            workpiece2ndParameter = fileNameMatch.group(9) # Optional
+
+            # DEPRECATED:
+            # workpiece2ndParameterNum = fileNameMatch.group(11) # Optional
+            workpieceLength = fileNameMatch.group(12)
 
             workpieceFullName = "{} {}".format(productId, workpieceName)
             if workpieceFullName in workpieceFullNames:
@@ -196,8 +198,8 @@ def exportDimensions():
             else:
                 workpieceFullNames.append(workpieceFullName)
 
-            tailingWorkpiece = fileNameMatch.group(13)        # Optional
-            workpieceLongTubeLength = fileNameMatch.group(15) # Optional
+            tailingWorkpiece = fileNameMatch.group(14)        # Optional
+            workpieceLongTubeLength = fileNameMatch.group(16) # Optional
 
             ws[f"A{rowMax}"].value = workpieceFullName
             ws[f"A{rowMax}"].number_format = "@"
@@ -216,11 +218,14 @@ def exportDimensions():
             ws[f"C{rowMax}"].number_format = "@"
             ws[f"D{rowMax}"].value = workpieceMaterial
             ws[f"D{rowMax}"].number_format = "@"
-            if not workpiece2ndDimensionInccator or not re.search(r"^\d", workpiece2ndDimensionInccator):
-                ws[f"E{rowMax}"].value = workpiece2ndDimensionInccator
-                ws[f"E{rowMax}"].number_format = "@"
-                ws[f"F{rowMax}"].value = workpiece2ndDimensionInccatorNum
-                ws[f"F{rowMax}"].number_format = BUILTIN_FORMATS[2]
+            ws[f"E{rowMax}"].value = workpiece1stParameter
+            ws[f"E{rowMax}"].number_format = "@"
+            if not workpiece2ndParameter or not re.search(r"^\d", workpiece2ndParameter):
+                ws[f"F{rowMax}"].value = workpiece2ndParameter
+                ws[f"F{rowMax}"].number_format = "@"
+                # DEPRECATED:
+                # ws[f"H{rowMax}"].value = workpiece2ndParameterNum
+                # ws[f"H{rowMax}"].number_format = BUILTIN_FORMATS[2]
             ws[f"G{rowMax}"].value = workpieceLength
             ws[f"G{rowMax}"].number_format = BUILTIN_FORMATS[2]
 
