@@ -78,6 +78,8 @@ def strStandarize(old: Path) -> Path:
         new = new.replace("Ø", "∅")
         new = new.replace("Φ", "∅")
         new = new.replace("φ", "∅")
+        new = new.replace("_T1_", "_T1.0_")
+        new = new.replace("xT1x", "xT1.0x")
         new = re.sub(r"\s{2,}", " ", new)
         newPath = Path(new)
 
