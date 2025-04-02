@@ -48,36 +48,36 @@ def hotkeyAlignTube():
         continuePixel = imgRGB.getpixel(continuePixelPos)
         stopPixel     = imgRGB.getpixel(stopPixelPos)
 
-        if pausePixel == (255, 167, 51) and \
-            continuePixel == (196, 196, 196) and \
-            stopPixel == (228, 28, 28) and \
-            ((startPixel1 == (0, 160, 45) and startPixel2 == (192, 192, 192)) or (startPixel1 == (192, 192, 192) and startPixel2 == (0, 160, 45))):
-                savedPosition = copy.copy(mouse.position)
-                mouse.position = (302, 96 + deltaY)
-                mouse.press(Button.left)
-                mouse.release(Button.left)
-                time.sleep(mouseInterval)
-                mouse.position = (302, 146 + deltaY)
-                mouse.press(Button.left)
-                mouse.release(Button.left)
-                time.sleep(mouseInterval)
-                mouse.position = (455, 173 + deltaY)
-                mouse.press(Button.left)
-                mouse.release(Button.left)
-                mouse.position = savedPosition
-        else:
-            print("-----------------------")
-            print("激光机运行时无法进行此操作")
-            print((0, 160, 45))
-            print((192, 192, 192))
-            print(f"pausePixel == (255, 167, 51): {pausePixel == (255, 167, 51)}")
-            print(f"continuePixel == (196, 196, 196) = {continuePixel == (196, 196, 196)}")
-            print(f"stopPixel == (228, 28, 28) = {stopPixel == (228, 28, 28)}")
-            print(f"startPixel1 = {startPixel1}")
-            print(f"startPixel2 = {startPixel2}")
-            print(f"pausePixel = {pausePixel}")
-            print(f"continuePixel = {continuePixel}")
-            print(f"stopPixel = {stopPixel}")
+        # if pausePixel == (255, 167, 51) and \
+        #     continuePixel == (196, 196, 196) and \
+        #     stopPixel == (228, 28, 28) and \
+        #     ((startPixel1 == (0, 160, 45) and startPixel2 == (192, 192, 192)) or (startPixel1 == (192, 192, 192) and startPixel2 == (0, 160, 45))):
+        savedPosition = copy.copy(mouse.position)
+        mouse.position = (302, 96 + deltaY)
+        mouse.press(Button.left)
+        mouse.release(Button.left)
+        time.sleep(mouseInterval)
+        mouse.position = (302, 146 + deltaY)
+        mouse.press(Button.left)
+        mouse.release(Button.left)
+        time.sleep(mouseInterval)
+        mouse.position = (455, 173 + deltaY)
+        mouse.press(Button.left)
+        mouse.release(Button.left)
+        mouse.position = savedPosition
+        # else:
+        #     print("-----------------------")
+        #     print("激光机运行时无法进行此操作")
+        #     print([ 0, 160, 45 ])
+        #     print([ 192, 192, 192 ])
+        #     print(f"pausePixel == (255, 167, 51): {pausePixel == (255, 167, 51)}")
+        #     print(f"continuePixel == (196, 196, 196) = {continuePixel == (196, 196, 196)}")
+        #     print(f"stopPixel == (228, 28, 28) = {stopPixel == (228, 28, 28)}")
+        #     print(f"startPixel1 = {startPixel1}")
+        #     print(f"startPixel2 = {startPixel2}")
+        #     print(f"pausePixel = {pausePixel}")
+        #     print(f"continuePixel = {continuePixel}")
+        #     print(f"stopPixel = {stopPixel}")
             # return win32api.MessageBox(
             #         None,
             #         "激光机运行时无法进行此操作",
